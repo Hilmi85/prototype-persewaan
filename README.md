@@ -72,40 +72,38 @@ Beberapa modul utama yang terdapat pada sistem ini antara lain:
 
 ## Cara Menjalankan Proyek
 
-Berikut langkah-langkah menjalankan proyek ini dari awal.
-
-### 1. Clone repository
-
-Clone project terlebih dahulu ke komputer Anda.
-
-Kalau ingin versi yang **lebih keren** lagi, bisa pakai ini:
-
 ````md
-## Cara Menjalankan Proyek
 
-Ikuti langkah berikut untuk menjalankan project secara lokal:
-
-```bash
 # Clone repository
+
 git clone <https://github.com/Hilmi85/prototype-persewaan.git>
 
 # Masuk ke folder project
+
 cd prototype-persewaan
 
 # Install dependency backend dan frontend
+
 composer install
 npm install
 
 # Buat file environment
+
 cp .env.example .env
 
 # Generate application key
+
 php artisan key:generate
 
 # Jalankan migration dan seeder
+
 php artisan migrate --seed
 
 # Jalankan project
+
 npm run start
+
+```
+
 ```
 ````
