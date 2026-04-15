@@ -103,7 +103,5 @@ php artisan migrate --seed
 
 npm run start
 
-```
 
-```
 ````
