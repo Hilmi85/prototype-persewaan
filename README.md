@@ -1,4 +1,5 @@
 # Quin Salon
+
 ## Sistem Informasi Persewaan Baju Adat dan Jasa Rias Berbasis Web
 
 Proyek ini merupakan aplikasi web untuk mendukung proses **persewaan baju adat dan jasa rias** pada **Quin Salon**. Sistem ini dirancang untuk membantu pelanggan melihat katalog layanan, memilih item, melakukan pemesanan, serta memilih metode pembayaran. Di sisi admin, sistem ini membantu pengelolaan data item, kategori, bundling, order, booking, dan pembayaran secara lebih terstruktur.
@@ -8,6 +9,7 @@ Proyek ini merupakan aplikasi web untuk mendukung proses **persewaan baju adat d
 ## Fitur Utama
 
 ### Customer
+
 - Melihat katalog baju adat dan layanan
 - Melihat detail item
 - Menambahkan item ke keranjang
@@ -16,6 +18,7 @@ Proyek ini merupakan aplikasi web untuk mendukung proses **persewaan baju adat d
 - Melakukan pemesanan dengan lebih praktis
 
 ### Admin
+
 - Login admin
 - Mengelola kategori
 - Mengelola item dan gambar item
@@ -30,6 +33,7 @@ Proyek ini merupakan aplikasi web untuk mendukung proses **persewaan baju adat d
 ## Tujuan Sistem
 
 Sistem ini dibangun untuk:
+
 - mempermudah pelanggan dalam memperoleh informasi layanan tanpa harus datang langsung,
 - membantu pemilik usaha mengelola data persewaan dan jasa rias,
 - mendukung proses pemesanan yang lebih rapi dan terdokumentasi,
@@ -51,6 +55,7 @@ Sistem ini dibangun untuk:
 ## Struktur Modul Utama
 
 Beberapa modul utama yang terdapat pada sistem ini antara lain:
+
 - Dashboard
 - Katalog Item
 - Detail Item
@@ -70,8 +75,37 @@ Beberapa modul utama yang terdapat pada sistem ini antara lain:
 Berikut langkah-langkah menjalankan proyek ini dari awal.
 
 ### 1. Clone repository
+
 Clone project terlebih dahulu ke komputer Anda.
 
+Kalau ingin versi yang **lebih keren** lagi, bisa pakai ini:
+
+````md
+## Cara Menjalankan Proyek
+
+Ikuti langkah berikut untuk menjalankan project secara lokal:
+
 ```bash
-git clone <url-repository>
+# Clone repository
+git clone <https://github.com/Hilmi85/prototype-persewaan.git>
+
+# Masuk ke folder project
 cd prototype-persewaan
+
+# Install dependency backend dan frontend
+composer install
+npm install
+
+# Buat file environment
+cp .env.example .env
+
+# Generate application key
+php artisan key:generate
+
+# Jalankan migration dan seeder
+php artisan migrate --seed
+
+# Jalankan project
+npm run start
+```
+````
