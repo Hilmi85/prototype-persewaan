@@ -1,46 +1,38 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Order;
-use App\Models\OrderItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
     public function index()
     {
-        // Fetch all orders from the database
-        $orders = Order::all()->sortByDesc('created_at');
+        $orders = Order::with(['user', 'orderItems.item', 'orderBundles.bundle', 'payments', 'rentalBookings'])
+            ->latest()
+            ->get();
 
-        // Return the view with the orders
         return view('admin.order.index', compact('orders'));
     }
 
-    public function show($id)
+    public function show(Order $order)
     {
-        // Fetch the order by ID
-        $order = Order::findOrFail($id);
-        $orderItems = OrderItem::where('order_id', $order->id)->get();
+        $order->load(['user', 'orderItems.item', 'orderBundles.bundle', 'payments', 'rentalBookings']);
 
-        // Return the view with the order details
-        return view('admin.order.show', compact('order', 'orderItems'));
+        return view('admin.order.show', compact('order'));
     }
 
-    public function updateStatus($id)
+    public function updateStatus(Request $request, Order $order)
     {
-        // Fetch the order by ID
-        $order = Order::findOrFail($id);
+        $validated = $request->validate([
+            'status' => 'required|in:pending,confirmed,booked,in_progress,completed,cancelled',
+        ]);
 
-        // Update the order status to 'settled'
-        if(Auth::user()->role->role_name == 'admin' || Auth::user()->role->role_name == 'cashier') {
-            $order->status = 'settlement';
-        } else {
-            $order->status = 'cooked';
-        }
-        $order->save();
+        $order->update([
+            'status' => $validated['status'],
+        ]);
 
-        // Redirect back to the orders index with a success message
-        return redirect()->route('orders.index')->with('success', 'Order settled successfully.');
+        return redirect()->route('orders.show', $order)->with('success', 'Status order berhasil diperbarui.');
     }
 }

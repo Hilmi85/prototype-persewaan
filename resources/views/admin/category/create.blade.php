@@ -2,49 +2,70 @@
 @section('title', 'Tambah Kategori')
 
 @section('content')
-<div class="page-title">
-    <div class="row">
-        <div class="col-12 col-md-6 order-md-1 order-last">
-            <h3>Tambah Data Kategori</h3>
-            <p class="text-subtitle text-muted">Silahkan isi data kategori yang ingin ditambahkan</p>
+<div class="page-heading">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h3>Tambah Kategori</h3>
+            <p class="text-muted mb-0">
+                Tambahkan kategori baru untuk mengelompokkan item pada sistem.
+            </p>
+        </div>
+        <div>
+            <a href="{{ route('categories.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Kembali
+            </a>
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-body">
-        @if ($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <h5 class="alert-heading">Submit Error!</h5>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-        <form class="form" action="{{ route('categories.store') }}" method="POST">
-            @csrf
-            <div class="form-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label for="name">Nama Kategori</label>
-                            <input type="text" class="form-control" id="name" placeholder="Masukkan Nama Kategori" name="cat_name" required>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="description">Deskripsi</label>
-                            <textarea type="text" class="form-control" id="description" placeholder="Masukkan Deskripsi" name="description" required></textarea>
-                        </div>
-                        <div class="form-group d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary me-1 mb-1">Simpan</button>
-                            <button type="reset" class="btn btn-light-secondary me-1 mb-1">Reset</button>
-                            <a href="{{ route('categories.index') }}" type="submit" class="btn btn-light-secondary me-1 mb-1">Batal</a>
-                        </div>
+<div class="page-content">
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Form Tambah Kategori</h4>
+            </div>
+
+            <div class="card-body">
+                <form action="{{ route('categories.store') }}" method="POST">
+                    @csrf
+
+                    <div class="mb-3">
+                        <label for="cat_name" class="form-label">Nama Kategori</label>
+                        <input type="text"
+                               name="cat_name"
+                               id="cat_name"
+                               class="form-control @error('cat_name') is-invalid @enderror"
+                               value="{{ old('cat_name') }}"
+                               placeholder="Contoh: Baju Adat"
+                               required>
+                        @error('cat_name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
-                </div>
-            </div>
-        </form>
 
-    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Deskripsi</label>
+                        <textarea name="description"
+                                  id="description"
+                                  rows="4"
+                                  class="form-control @error('description') is-invalid @enderror"
+                                  placeholder="Masukkan deskripsi kategori">{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>Simpan
+                        </button>
+                        <a href="{{ route('categories.index') }}" class="btn btn-light-secondary">
+                            Batal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
 </div>
 @endsection

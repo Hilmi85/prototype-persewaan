@@ -8,10 +8,25 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Item extends Model
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'description', 'price', 'category_id', 'img', 'is_active', 'created_at', 'updated_at'];
-    protected $dates = ['deleted_at'];
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'category_id',
+        'item_type',
+        'adat_category',
+        'gender',
+        'img',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'is_active' => 'boolean',
+        'deleted_at' => 'datetime',
+    ];
 
     public function category()
     {
@@ -23,4 +38,13 @@ class Item extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function itemVariants()
+    {
+        return $this->hasMany(ItemVariant::class);
+    }
+
+    public function bundleItems()
+    {
+        return $this->hasMany(BundleItem::class);
+    }
 }

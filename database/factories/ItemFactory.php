@@ -24,15 +24,25 @@ class ItemFactory extends Factory
                 ->toArray();
         }
 
+        $itemType = $this->faker->randomElement(['baju_adat', 'aksesoris', 'jasa_rias']);
+
         return [
-            'name' => $this->faker->name(),
+            'name' => $this->faker->words(2, true),
+            'description' => $this->faker->sentence(),
+            'price' => $this->faker->randomFloat(2, 50000, 500000),
             'category_id' => $this->faker->numberBetween(1, 2),
-            'price' => $this->faker->randomFloat(2, 1000, 100000),
-            'description' => $this->faker->text(),
+
+            'item_type' => $itemType,
+            'adat_category' => $itemType === 'baju_adat'
+                ? $this->faker->randomElement(['Jawa', 'Sunda', 'Madura', 'Bali'])
+                : null,
+            'gender' => $this->faker->randomElement(['Laki-laki', 'Perempuan', 'Unisex']),
+
             'img' => !empty($images)
                 ? $this->faker->randomElement($images)
                 : 'default.jpg',
-            'is_active' => $this->faker->boolean(),
+
+            'is_active' => $this->faker->boolean(90),
         ];
     }
 }

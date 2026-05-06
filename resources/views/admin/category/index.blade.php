@@ -1,75 +1,82 @@
 @extends('admin.layouts.master')
-
 @section('title', 'Kategori')
-@section('css')
-<link rel="stylesheet" href="{{ asset('assets/admin/extensions/simple-datatables/style.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/admin/compiled/css/table-datatable.css') }}">
-@endsection
 
 @section('content')
 <div class="page-heading">
-    <div class="page-title">
-        <div class="row">
-            <div class="col-12 col-md-6 order-md-1 order-last">
-                <h3>Manajemen Kategori</h3>
-                <p class="text-subtitle text-muted">Informasi Kategori yang Terdaftar</p>
-            </div>
-            <div class="col-12 col-md-6 order-md-2 order-first">
-                <a href="{{ route('categories.create') }}" class="btn btn-primary float-start float-lg-end">
-                    <i class="bi bi-plus"></i>
-                    Tambah Kategori
-                </a>
-            </div>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h3>Data Kategori</h3>
+            <p class="text-muted mb-0">
+                Kelola kategori item untuk sistem persewaan baju adat, aksesoris, dan jasa rias.
+            </p>
+        </div>
+        <div>
+            <a href="{{ route('categories.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Tambah Kategori
+            </a>
         </div>
     </div>
+</div>
+
+<div class="page-content">
     <section class="section">
         <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Daftar Kategori</h4>
+            </div>
+
             <div class="card-body">
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <p><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</p>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
-                <table class="table table-striped" id="table1">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Nama Kategori</th>
-                            <th>Deskripsi</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($categories as $category)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $category->cat_name }}</td>
-                            <td>{{ Str::limit($category->description, 30) }}</td>
-                            <td>
-                                <a href="{{ route('categories.edit', $category->id) }}" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil"></i> Ubah
-                                </a>
-                                <form action="{{ route('categories.destroy', $category->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah anda yakin ingin menghapus menu ini?')">
-                                        <i class="bi bi-trash"></i> Hapus
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">No</th>
+                                <th>Nama Kategori</th>
+                                <th>Deskripsi</th>
+                                <th style="width: 180px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($categories as $index => $category)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td class="fw-semibold">{{ $category->cat_name }}</td>
+                                    <td>{{ $category->description ?? '-' }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ route('categories.edit', $category->id) }}" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <form action="{{ route('categories.destroy', $category->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kategori ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        Belum ada data kategori.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-
     </section>
 </div>
-@endsection
-
-@section('script')
-<script src="{{ asset('assets/admin/extensions/simple-datatables/umd/simple-datatables.js') }}"></script>
-<script src="{{ asset('assets/admin/static/js/pages/simple-datatables.js') }}"></script>
 @endsection

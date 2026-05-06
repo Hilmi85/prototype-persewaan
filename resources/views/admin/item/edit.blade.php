@@ -1,85 +1,166 @@
 @extends('admin.layouts.master')
-@section('title', 'Edit Menu')
+@section('title', 'Edit Item')
 
 @section('content')
-<div class="page-title">
-    <div class="row">
-        <div class="col-12 col-md-6 order-md-1 order-last">
-            <h3>Edit Data Menu</h3>
-            <p class="text-subtitle text-muted">Silahkan isi data menu yang ingin diubah</p>
+<div class="page-heading">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h3>Edit Item</h3>
+            <p class="text-muted mb-0">
+                Perbarui data item sesuai kebutuhan sistem terbaru.
+            </p>
+        </div>
+        <div>
+            <a href="{{ route('items.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Kembali
+            </a>
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-body">
-        @if ($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <h5 class="alert-heading">Update Error!</h5>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+<div class="page-content">
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Form Edit Item</h4>
             </div>
-        @endif
-        <form class="form" action="{{ route('items.update', $item->id) }}" enctype="multipart/form-data" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="form-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label for="name">Nama Menu</label>
-                            <input type="text" class="form-control" id="name" placeholder="Masukkan Nama Menu" name="name" required value="{{ $item->name }}">
+
+            <div class="card-body">
+                <form action="{{ route('items.update', $item->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nama Item</label>
+                            <input type="text" name="name" id="name"
+                                   class="form-control @error('name') is-invalid @enderror"
+                                   value="{{ old('name', $item->name) }}" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        <div class="form-group">
-                            <label for="description">Deskripsi</label>
-                            <textarea type="text" class="form-control" id="description" placeholder="Masukkan Deskripsi" name="description" required>{{ $item->description }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="price">Harga</label>
-                            <input type="number" class="form-control" id="price" placeholder="Masukkan Harga" name="price" required value="{{ $item->price }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="category">Kategori</label>
-                            <select class="form-select" id="category" name="category_id" required>
-                                <option value="" disabled>Pilih Menu</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}" {{ $item->category_id == $category->id ? 'selected' : '' }}>{{ $category->cat_name }}</option>
+                        <div class="col-md-6 mb-3">
+                            <label for="category_id" class="form-label">Kategori</label>
+                            <select name="category_id" id="category_id"
+                                    class="form-select @error('category_id') is-invalid @enderror" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}"
+                                        {{ old('category_id', $item->category_id) == $category->id ? 'selected' : '' }}>
+                                        {{ $category->cat_name }}
+                                    </option>
                                 @endforeach
                             </select>
+                            @error('category_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
-                        <div class="form-group">
-                            <label for="image">Gambar</label>
-                            @if ($item->img)
-                                <div class="mt-2 mb-2">
-                                    <img src="{{ asset('img_item_upload/'. $item->img) }}" width="200" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{  $item->img }}';">
+                        <div class="col-md-4 mb-3">
+                            <label for="item_type" class="form-label">Jenis Item</label>
+                            <select name="item_type" id="item_type"
+                                    class="form-select @error('item_type') is-invalid @enderror" required>
+                                <option value="baju_adat" {{ old('item_type', $item->item_type) == 'baju_adat' ? 'selected' : '' }}>Baju Adat</option>
+                                <option value="aksesoris" {{ old('item_type', $item->item_type) == 'aksesoris' ? 'selected' : '' }}>Aksesoris</option>
+                                <option value="jasa_rias" {{ old('item_type', $item->item_type) == 'jasa_rias' ? 'selected' : '' }}>Jasa Rias</option>
+                            </select>
+                            @error('item_type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="adat_category" class="form-label">Kategori Adat</label>
+                            <input type="text" name="adat_category" id="adat_category"
+                                   class="form-control @error('adat_category') is-invalid @enderror"
+                                   value="{{ old('adat_category', $item->adat_category) }}">
+                            @error('adat_category')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="gender" class="form-label">Gender</label>
+                            <select name="gender" id="gender"
+                                    class="form-select @error('gender') is-invalid @enderror">
+                                <option value="">-- Pilih Gender --</option>
+                                <option value="Laki-laki" {{ old('gender', $item->gender) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                                <option value="Perempuan" {{ old('gender', $item->gender) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                                <option value="Unisex" {{ old('gender', $item->gender) == 'Unisex' ? 'selected' : '' }}>Unisex</option>
+                            </select>
+                            @error('gender')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="price" class="form-label">Harga</label>
+                            <input type="number" name="price" id="price"
+                                   class="form-control @error('price') is-invalid @enderror"
+                                   value="{{ old('price', $item->price) }}" min="0" required>
+                            @error('price')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="is_active" class="form-label">Status</label>
+                            <select name="is_active" id="is_active"
+                                    class="form-select @error('is_active') is-invalid @enderror" required>
+                                <option value="1" {{ old('is_active', $item->is_active) == 1 ? 'selected' : '' }}>Aktif</option>
+                                <option value="0" {{ old('is_active', $item->is_active) == 0 ? 'selected' : '' }}>Nonaktif</option>
+                            </select>
+                            @error('is_active')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">Deskripsi</label>
+                            <textarea name="description" id="description" rows="4"
+                                      class="form-control @error('description') is-invalid @enderror">{{ old('description', $item->description) }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="img" class="form-label">Gambar Item</label>
+                            <input type="file" name="img" id="img"
+                                   class="form-control @error('img') is-invalid @enderror"
+                                   accept=".jpg,.jpeg,.png,.webp">
+                            @error('img')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        @if($item->img)
+                            <div class="col-12 mb-4">
+                                <label class="form-label">Gambar Saat Ini</label>
+                                <div>
+                                    <img src="{{ asset('img_item_upload/' . $item->img) }}"
+                                         alt="{{ $item->name }}"
+                                         width="120"
+                                         style="border-radius: 12px; object-fit: cover;"
+                                         onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
                                 </div>
-                            @endif
-                            <input type="file" class="form-control" id="image" name="img">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="is_active">Status</label>
-                            <div class="form-check form-switch">
-                                <input type="hidden" name="is_active" value="0">
-                                <input type="checkbox" class="form-check-input" id="flexSwitchCheckChecked" name="is_active" value="1" {{ $item->is_active == 1 ? 'checked' : '' }}>
-                                <label for="flexSwitchCheckChecked">Aktif/Tidak Aktif</label>
                             </div>
-                        </div>
-                        <div class="form-group d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary me-1 mb-1">Simpan</button>
-                            <button type="reset" class="btn btn-light-secondary me-1 mb-1">Reset</button>
-                            <a href="{{ route('items.index') }}" type="submit" class="btn btn-light-secondary me-1 mb-1">Batal</a>
-                        </div>
+                        @endif
                     </div>
-                </div>
-            </div>
-        </form>
 
-    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>Update
+                        </button>
+                        <a href="{{ route('items.index') }}" class="btn btn-light-secondary">
+                            Batal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
 </div>
 @endsection

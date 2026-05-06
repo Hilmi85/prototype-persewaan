@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,15 +14,24 @@ class User extends Authenticatable
     protected $fillable = [
         'username',
         'password',
+        'name',
         'fullname',
         'email',
         'phone',
+        'address',
         'role_id',
-        'created_at',
-        'update_at',
     ];
 
-    protected $dates = ['deleted_at'];
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'deleted_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
     public function role()
     {
@@ -33,5 +41,10 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function contactSettings()
+    {
+        return $this->hasMany(ContactSetting::class, 'admin_user_id');
     }
 }

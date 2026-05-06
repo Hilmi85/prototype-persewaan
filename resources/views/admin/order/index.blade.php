@@ -1,107 +1,106 @@
 @extends('admin.layouts.master')
-@section('title', 'Daftar Pesanan')
-
-@section('css')
-<link rel="stylesheet" href="{{ asset('assets/admin/extensions/simple-datatables/style.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/admin/compiled/css/table-datatable.css') }}">
-@endsection
+@section('title', 'Data Order')
 
 @section('content')
 <div class="page-heading">
-    <div class="page-title">
-        <div class="row">
-            <div class="col-12 col-md-6 order-md-1 order-last">
-                <h3>Daftar Pesanan</h3>
-                <p class="text-subtitle text-muted">Informasi Pesanan yang Masuk</p>
-            </div>
-            {{-- <div class="col-12 col-md-6 order-md-2 order-first">
-                <a href="{{ route('items.create') }}" class="btn btn-primary float-start float-lg-end">
-                    <i class="bi bi-plus"></i>
-                    Tambah Menu
-                </a>
-            </div> --}}
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h3>Data Order</h3>
+            <p class="text-muted mb-0">
+                Kelola seluruh pesanan customer pada sistem persewaan baju adat dan jasa rias.
+            </p>
         </div>
     </div>
+</div>
+
+<div class="page-content">
     <section class="section">
         <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Daftar Order</h4>
+            </div>
+
             <div class="card-body">
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <p><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</p>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
-                <table class="table table-striped" id="table1">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Kode Pesanan</th>
-                            <th>Nama Pelanggan</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>No. Meja</th>
-                            <th>Metode Pembayaran</th>
-                            <th>Catatan</th>
-                            <th>Dibuat Pada</th>
-                            <th colspan="2">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($orders as $order)
-                        <tr>
 
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $order->order_code }}</td>
-                            <td>{{ $order->user->fullname }}</td>
-                            <td>{{ 'Rp'. number_format($order->grand_total, 0, ',', '.') }}</td>
-                            <td>
-                                <span class="badge {{ $order->status == 'settlement' ? 'bg-success' : ($order->status == 'pending' ? 'bg-warning' : ($order->status == 'cooked' ? 'bg-primary' : 'bg-danger')) }}">
-                                    {{ $order->status }}
-                                </span>
-                            </td>
-                            <td>{{ $order->table_number }}</td>
-                            <td>{{ $order->payment_method }}</td>
-                            <td>{{ $order->note ?? '-' }}</td>
-                            <td>{{ $order->created_at->format('d-m-Y H:i') }}</td>
-                            <td>
-                                <span class="btn btn-primary btn-sm">
-                                    <a href="{{ route('orders.show', $order->id) }}" class="text-white">
-                                        <i class="bi bi-eye"></i> Lihat
-                                    </a>
-                                </span>
-                            </td>
-                            <td>
-                                @if (Auth::user()->role->role_name == 'admin' || Auth::user()->role->role_name == 'cashier')
-                                    @if ($order->status == 'pending' && $order->payment_method == 'tunai')
-                                        <form action="{{ route('orders.updateStatus', $order->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-sm">
-                                                <i class="bi bi-check-circle"></i> Terima Pembayaran
-                                            </button>
-                                        </form>
-                                    @endif
-                                @elseif(Auth::user()->role->role_name == 'chef' && $order->status == 'settlement')
-                                    <form action="{{ route('orders.updateStatus', $order->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="bi bi-check-circle"></i> Pesanan Siap
-                                        </button>
-                                    </form>
-                                @endif
-                            </td>
-                        </tr>
-
-                        @endforeach
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Kode Order</th>
+                                <th>Customer</th>
+                                <th>Jenis Acara</th>
+                                <th>Total</th>
+                                <th>Pembayaran</th>
+                                <th>Status Order</th>
+                                <th>Tanggal</th>
+                                <th style="width: 120px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($orders as $index => $order)
+                                @php
+                                    $payment = $order->payments->first();
+                                @endphp
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td class="fw-semibold">{{ $order->order_code }}</td>
+                                    <td>
+                                        <div class="fw-semibold">{{ $order->user->fullname ?? '-' }}</div>
+                                        <small class="text-muted">{{ $order->user->phone ?? '-' }}</small>
+                                    </td>
+                                    <td>{{ $order->jenis_acara ?? '-' }}</td>
+                                    <td>Rp{{ number_format($order->grand_total, 0, ',', '.') }}</td>
+                                    <td>
+                                        @if($payment)
+                                            <span class="badge bg-{{ $payment->payment_status === 'paid' ? 'success' : 'warning' }}">
+                                                {{ ucfirst($payment->payment_status) }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary">Belum Ada</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $statusColor = match($order->status) {
+                                                'pending' => 'warning',
+                                                'confirmed' => 'info',
+                                                'booked' => 'primary',
+                                                'in_progress' => 'secondary',
+                                                'completed' => 'success',
+                                                'cancelled' => 'danger',
+                                                default => 'dark'
+                                            };
+                                        @endphp
+                                        <span class="badge bg-{{ $statusColor }}">
+                                            {{ ucwords(str_replace('_', ' ', $order->status)) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $order->created_at->format('d-m-Y H:i') }}</td>
+                                    <td>
+                                        <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">
+                                        Belum ada data order.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-
     </section>
 </div>
-@endsection
-
-@section('script')
-<script src="{{ asset('assets/admin/extensions/simple-datatables/umd/simple-datatables.js') }}"></script>
-<script src="{{ asset('assets/admin/static/js/pages/simple-datatables.js') }}"></script>
 @endsection

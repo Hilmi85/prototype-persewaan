@@ -17,8 +17,8 @@
                     <div class="auth-logo">
 
                     </div>
-                    <h1 class="auth-title">Log in Restoranku</h1>
-                    <p class="auth-subtitle mb-5">Silakan masuk untuk mengelola layanan Restoranku.</p>
+                    <h1 class="auth-title">Log in Admin Persewaan</h1>
+                    <p class="auth-subtitle mb-5">Silakan masuk untuk mengelola layanan Persewaan.</p>
 
                     <form method="POST" action="{{ route('login') }}">
                         @csrf

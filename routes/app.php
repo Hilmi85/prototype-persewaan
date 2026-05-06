@@ -1,48 +1,79 @@
 <?php
 
+use App\Http\Controllers\BundleController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ContactSettingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\IndexController;
 use App\Http\Controllers\ItemController;
-use App\Http\Controllers\MenuController;
+use App\Http\Controllers\ItemVariantController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\RecommendationRuleController;
+use App\Http\Controllers\RentalBookingController;
+use App\Http\Controllers\RiasController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Customer Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::get('/', function () {
-    return redirect()->route('menu');
-});
+Route::get('/', [IndexController::class, 'index'])->name('home');
 
-Route::get('/menu', [MenuController::class, 'index'])->name('menu');
-Route::get('/cart', [MenuController::class, 'cart'])->name('cart');
-Route::post('/cart/add', [MenuController::class, 'addToCart'])->name('cart.add');
-Route::post('/cart/update', [MenuController::class, 'updateCart'])->name('cart.update');
-Route::post('/cart/remove', [MenuController::class, 'removeCart'])->name('cart.remove');
-Route::get('/cart/clear', [MenuController::class, 'clearCart'])->name('cart.clear');
+Route::get('/katalog', [IndexController::class, 'catalog'])->name('catalog');
+Route::get('/katalog/{item}', [IndexController::class, 'showItem'])->name('catalog.show');
 
-Route::get('/checkout', [MenuController::class, 'checkout'])->name('checkout');
-Route::post('/checkout/store', [MenuController::class, 'storeOrder'])->name('checkout.store');
-Route::get('/checkout/success/{orderId}', [MenuController::class, 'checkoutSuccess'])->name('checkout.success');
+Route::get('/bundle/{bundle}', [IndexController::class, 'showBundle'])->name('bundle.show');
 
+Route::get('/rias', [RiasController::class, 'index'])->name('rias.index');
 
-// admin routes
-Route::middleware('role:admin')->group(function (){
-    Route::resource('categories', CategoryController::class);
-    Route::resource('roles', RoleController::class);
-    Route::resource('users', UserController::class);
-});
+Route::get('/rekomendasi', [RecommendationController::class, 'index'])->name('recommendation.index');
+Route::post('/rekomendasi', [RecommendationController::class, 'recommend'])->name('recommendation.process');
 
-Route::middleware('role:admin|cashier|chef')->group(function (){
+Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
+Route::post('/keranjang/tambah/{item}', [CartController::class, 'add'])->name('cart.add');
+Route::post('/keranjang/update/{key}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/keranjang/hapus/{key}', [CartController::class, 'remove'])->name('cart.remove');
+Route::delete('/keranjang/kosongkan', [CartController::class, 'clear'])->name('cart.clear');
+
+Route::get('/checkout/keranjang', [CheckoutController::class, 'showCartCheckout'])->name('checkout.cart.show');
+Route::post('/checkout/keranjang', [CheckoutController::class, 'storeCartCheckout'])->name('checkout.cart.store');
+
+Route::get('/checkout/bundle/{bundle}', [CheckoutController::class, 'showBundleCheckout'])->name('checkout.bundle.show');
+Route::post('/checkout/bundle/{bundle}', [CheckoutController::class, 'storeBundleCheckout'])->name('checkout.bundle.store');
+Route::get('/checkout/success/{orderCode}', [CheckoutController::class, 'success'])->name('checkout.success');
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('orders', OrderController::class);
-    Route::post('items/update-status/{order}', [ItemController::class, 'updateStatus'])->name('items.updateStatus');
-    Route::resource('items', ItemController::class);
-    Route::post('orders/{order}', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::resource('roles', RoleController::class)->except(['show']);
+    Route::resource('users', UserController::class)->except(['show']);
+
+    Route::resource('items', ItemController::class)->except(['show']);
+    Route::post('/items/{item}/toggle-status', [ItemController::class, 'updateStatus'])->name('items.updateStatus');
+
+    Route::resource('item-variants', ItemVariantController::class)->except(['show']);
+    Route::resource('bundles', BundleController::class)->except(['show']);
+    Route::resource('recommendation-rules', RecommendationRuleController::class)->except(['show']);
+    Route::resource('contact-settings', ContactSettingController::class)->except(['show']);
+
+    Route::resource('orders', OrderController::class)->only(['index', 'show']);
+    Route::post('/orders/{order}/update-status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+
+    Route::resource('rental-bookings', RentalBookingController::class)->except(['show']);
+    Route::resource('payments', PaymentController::class)->except(['show']);
 });
-
-
-
-
-
-

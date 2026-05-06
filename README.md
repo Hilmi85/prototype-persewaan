@@ -19,7 +19,7 @@ Proyek ini merupakan aplikasi web untuk mendukung proses **persewaan baju adat d
 
 ### Admin
 
-- Login admin
+- Login admin (EMAIL: admin@quinsalon.com, PW: admin123, USERNAME: admin)
 - Mengelola kategori
 - Mengelola item dan gambar item
 - Mengelola paket bundling
@@ -73,7 +73,6 @@ Beberapa modul utama yang terdapat pada sistem ini antara lain:
 ## Cara Menjalankan Proyek
 
 ````md
-
 # Clone repository
 
 git clone <https://github.com/Hilmi85/prototype-persewaan.git>

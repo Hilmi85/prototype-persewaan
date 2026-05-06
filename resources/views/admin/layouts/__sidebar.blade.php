@@ -2,11 +2,12 @@
     <div class="sidebar-wrapper active">
         <div class="sidebar-header position-relative">
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="logo">
-                    <a href="{{ url('index') }}">Restoranku</a>
+                <h4 class="logo mb-0">
+                    <a href="{{ route('dashboard') }}">Quin Salon</a>
                 </h4>
-                <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true"
+
+                <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
                         role="img" class="iconify iconify--system-uicons" width="20" height="20"
                         preserveAspectRatio="xMidYMid meet" viewBox="0 0 21 21">
                         <g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round"
@@ -21,75 +22,130 @@
                             </g>
                         </g>
                     </svg>
+
                     <div class="form-check form-switch fs-6">
-                        <input class="form-check-input  me-0" type="checkbox" id="toggle-dark" style="cursor: pointer">
+                        <input class="form-check-input me-0" type="checkbox" id="toggle-dark" style="cursor: pointer">
                         <label class="form-check-label"></label>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true"
-                        role="img" class="iconify iconify--mdi" width="20" height="20" preserveAspectRatio="xMidYMid meet"
-                        viewBox="0 0 24 24">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+                        role="img" class="iconify iconify--mdi" width="20" height="20"
+                        preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24">
                         <path fill="currentColor"
                             d="m17.75 4.09l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L12.44 4l1.06-3l1.06 3l3.19.09m3.5 6.91l-1.64 1.25l.59 1.98l-1.7-1.17l-1.7 1.17l.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95l2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85c-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14c.4-.4.82-.76 1.27-1.08c.75-.53 1.93.36 1.85 1.19c-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82c-2.81 3.14-2.7 7.96.31 10.98c3.02 3.01 7.84 3.12 10.98.31Z">
                         </path>
                     </svg>
                 </div>
-                <div class="sidebar-toggler  x">
-                    <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
+
+                <div class="sidebar-toggler x">
+                    <a href="#" class="sidebar-hide d-xl-none d-block">
+                        <i class="bi bi-x bi-middle"></i>
+                    </a>
                 </div>
             </div>
         </div>
+
         <div class="sidebar-menu">
             <ul class="menu">
-                <li class="sidebar-title">Menu</li>
+                <li class="sidebar-title">Menu Admin</li>
 
                 <li class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}" class='sidebar-link'>
+                    <a href="{{ route('dashboard') }}" class="sidebar-link">
                         <i class="bi bi-grid-fill"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
 
                 <li class="sidebar-item {{ request()->routeIs('orders.*') ? 'active' : '' }}">
-                    <a href="{{ route('orders.index') }}" class='sidebar-link'>
-                        <i class="bi bi-cart-fill"></i>
-                        <span>Daftar Pesanan</span>
+                    <a href="{{ route('orders.index') }}" class="sidebar-link">
+                        <i class="bi bi-receipt-cutoff"></i>
+                        <span>Data Order</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ request()->routeIs('payments.*') ? 'active' : '' }}">
+                    <a href="{{ route('payments.index') }}" class="sidebar-link">
+                        <i class="bi bi-wallet2"></i>
+                        <span>Data Pembayaran</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ request()->routeIs('rental-bookings.*') ? 'active' : '' }}">
+                    <a href="{{ route('rental-bookings.index') }}" class="sidebar-link">
+                        <i class="bi bi-calendar-check-fill"></i>
+                        <span>Data Booking</span>
                     </a>
                 </li>
 
                 <li class="sidebar-item {{ request()->routeIs('items.*') ? 'active' : '' }}">
-                    <a href=" {{ route('items.index') }}" class='sidebar-link'>
-                        <i class="bi bi-file-earmark-text-fill"></i>
-                        <span>Daftar Menu</span>
-                    </a>
-                </li>
-                @if (Auth::user()->role->role_name == 'admin')
-                <li class="sidebar-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                    <a href="{{ route('users.index') }}" class='sidebar-link'>
-                        <i class="bi bi-people-fill"></i>
-                        <span>Manajemen Karyawan</span>
-                    </a>
-                </li>
-                <li class="sidebar-item {{ request()->routeIs('roles.*') ? 'active' : '' }}">
-                    <a href="{{ route('roles.index') }}" class='sidebar-link'>
-                        <i class="bi bi-person-fill-gear"></i>
-                        <span>Manajemen Role</span>
+                    <a href="{{ route('items.index') }}" class="sidebar-link">
+                        <i class="bi bi-bag-fill"></i>
+                        <span>Data Item</span>
                     </a>
                 </li>
 
-                <li class="sidebar-item {{ request()->routeIs('categories.*') ? 'active' : '' }}">
-                    <a href="{{ route('categories.index') }}" class='sidebar-link'>
-                        <i class="bi bi-tags-fill"></i>
-                        <span>Manajemen Kategori</span>
+                <li class="sidebar-item {{ request()->routeIs('item-variants.*') ? 'active' : '' }}">
+                    <a href="{{ route('item-variants.index') }}" class="sidebar-link">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                        <span>Item Variant</span>
                     </a>
                 </li>
-                @endif
-                <li class="sidebar-item">
-                    <form method="POST" action="{{ route('logout') }}" onclick="event.preventDefault();this.closest('form').submit();">
-                        @csrf
-                        <a href="{{ route('logout') }}" class='sidebar-link'>
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>{{ __('Log Out') }}</span>
+
+                <li class="sidebar-item {{ request()->routeIs('bundles.*') ? 'active' : '' }}">
+                    <a href="{{ route('bundles.index') }}" class="sidebar-link">
+                        <i class="bi bi-box2-heart-fill"></i>
+                        <span>Data Bundle</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ request()->routeIs('recommendation-rules.*') ? 'active' : '' }}">
+                    <a href="{{ route('recommendation-rules.index') }}" class="sidebar-link">
+                        <i class="bi bi-diagram-3-fill"></i>
+                        <span>Rule Rekomendasi</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ request()->routeIs('contact-settings.*') ? 'active' : '' }}">
+                    <a href="{{ route('contact-settings.index') }}" class="sidebar-link">
+                        <i class="bi bi-whatsapp"></i>
+                        <span>Contact Setting</span>
+                    </a>
+                </li>
+
+                @if (Auth::user()->role && Auth::user()->role->role_name == 'admin')
+                    <li class="sidebar-title">Manajemen</li>
+
+                    <li class="sidebar-item {{ request()->routeIs('categories.*') ? 'active' : '' }}">
+                        <a href="{{ route('categories.index') }}" class="sidebar-link">
+                            <i class="bi bi-tags-fill"></i>
+                            <span>Data Kategori</span>
                         </a>
+                    </li>
+
+                    <li class="sidebar-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                        <a href="{{ route('users.index') }}" class="sidebar-link">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Data User</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ request()->routeIs('roles.*') ? 'active' : '' }}">
+                        <a href="{{ route('roles.index') }}" class="sidebar-link">
+                            <i class="bi bi-person-fill-gear"></i>
+                            <span>Data Role</span>
+                        </a>
+                    </li>
+                @endif
+
+                <li class="sidebar-title">Akun</li>
+
+                <li class="sidebar-item">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="sidebar-link border-0 bg-transparent w-100 text-start">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>{{ __('Log Out') }}</span>
+                        </button>
                     </form>
                 </li>
             </ul>

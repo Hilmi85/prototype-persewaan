@@ -1,106 +1,114 @@
 @extends('admin.layouts.master')
-@section('title', 'Daftar Menu')
-
-@section('css')
-<link rel="stylesheet" href="{{ asset('assets/admin/extensions/simple-datatables/style.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/admin/compiled/css/table-datatable.css') }}">
-@endsection
+@section('title', 'Data Item')
 
 @section('content')
 <div class="page-heading">
-    <div class="page-title">
-        <div class="row">
-            <div class="col-12 col-md-6 order-md-1 order-last">
-                <h3>Daftar Menu</h3>
-                <p class="text-subtitle text-muted">Berbagai pilihan menu terbaik</p>
-            </div>
-            <div class="col-12 col-md-6 order-md-2 order-first">
-                <a href="{{ route('items.create') }}" class="btn btn-primary float-start float-lg-end">
-                    <i class="bi bi-plus"></i>
-                    Tambah Menu
-                </a>
-            </div>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h3>Data Item</h3>
+            <p class="text-muted mb-0">
+                Kelola item baju adat, aksesoris, dan jasa rias pada sistem Quin Salon.
+            </p>
+        </div>
+        <div>
+            <a href="{{ route('items.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Tambah Item
+            </a>
         </div>
     </div>
+</div>
+
+<div class="page-content">
     <section class="section">
         <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Daftar Item</h4>
+            </div>
+
             <div class="card-body">
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <p><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</p>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
-                <table class="table table-striped" id="table1">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Gambar</th>
-                            <th>Nama Item</th>
-                            <th>Deskripsi</th>
-                            <th>Harga</th>
-                            <th>Kategori</th>
-                            <th>Status</th>
-                            <th colspan="2">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($items as $item)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>
-                                <img src="{{ asset('img_item_upload/'. $item->img) }}" width="60" class="img-fluid rounded-top" alt="" onerror="this.onerror=null;this.src='{{  $item->img }}';">
-                            </td>
-                            <td>{{ $item->name }}</td>
-                            <td>{{ Str::limit($item->description,15) }}</td>
-                            <td>{{ 'Rp'. number_format($item->price, 0, ',','.') }}</td>
-                            <td>
-                                <span class="badge {{ $item->category->cat_name == 'Makanan' ? 'bg-warning' : 'bg-info' }}">
-                                    {{ $item->category->cat_name }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge {{ $item->is_active == 1 ? 'bg-success' : 'bg-danger' }}">
-                                    {{ $item->is_active == 1 ? 'Aktif' : 'Tidak Aktif' }}
-                                </span>
-                            </td>
-                            <td>
-                                <a href="{{ route('items.edit', $item->id) }}" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil"></i> Ubah
-                                </a>
-                            </td>
-                            <td>
-                                @if ($item->is_active == 1)
-                                    <form action="{{ route('items.updateStatus', $item->id) }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="is_active" value="0">
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah anda yakin ingin menonaktifkan menu ini?')">
-                                            <i class="bi bi-x"></i> Nonaktifkan
-                                        </button>
-                                    </form>
-                                @else
-                                    <form action="{{ route('items.updateStatus', $item->id) }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="is_active" value="1">
-                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Apakah anda yakin ingin mengaktifkan menu ini?')">
-                                            <i class="bi bi-check"></i> Aktifkan
-                                        </button>
-                                    </form>
-                                @endif
-                            </td>
-                        </tr>
 
-                        @endforeach
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Gambar</th>
+                                <th>Nama Item</th>
+                                <th>Kategori</th>
+                                <th>Jenis</th>
+                                <th>Adat</th>
+                                <th>Gender</th>
+                                <th>Harga</th>
+                                <th>Status</th>
+                                <th style="width: 180px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($items as $index => $item)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>
+                                        <img src="{{ asset('img_item_upload/' . ($item->img ?? 'default.jpg')) }}"
+                                             alt="{{ $item->name }}"
+                                             width="60"
+                                             height="60"
+                                             style="object-fit: cover; border-radius: 10px;"
+                                             onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
+                                    </td>
+                                    <td class="fw-semibold">{{ $item->name }}</td>
+                                    <td>{{ $item->category->cat_name ?? '-' }}</td>
+                                    <td>{{ ucfirst(str_replace('_', ' ', $item->item_type)) }}</td>
+                                    <td>{{ $item->adat_category ?? '-' }}</td>
+                                    <td>{{ $item->gender ?? '-' }}</td>
+                                    <td>Rp{{ number_format($item->price, 0, ',', '.') }}</td>
+                                    <td>
+                                        @if($item->is_active)
+                                            <span class="badge bg-success">Aktif</span>
+                                        @else
+                                            <span class="badge bg-secondary">Nonaktif</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <a href="{{ route('items.edit', $item->id) }}" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <form action="{{ route('items.updateStatus', $item->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-info text-white">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </button>
+                                            </form>
+
+                                            <form action="{{ route('items.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus item ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted py-4">
+                                        Belum ada data item.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-
     </section>
 </div>
-@endsection
-
-@section('script')
-<script src="{{ asset('assets/admin/extensions/simple-datatables/umd/simple-datatables.js') }}"></script>
-<script src="{{ asset('assets/admin/static/js/pages/simple-datatables.js') }}"></script>
 @endsection
