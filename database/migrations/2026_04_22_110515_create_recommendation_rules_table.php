@@ -11,9 +11,11 @@ return new class extends Migration
         Schema::create('recommendation_rules', function (Blueprint $table) {
             $table->id();
             $table->string('rule_code')->unique()->nullable();
-            $table->string('rule_name')->nullable();
+            $table->string('rule_name');
 
-            $table->unsignedBigInteger('bundle_id')->nullable();
+            $table->foreignId('bundle_id')
+                ->constrained('bundles')
+                ->nullOnDelete();
 
             $table->string('jenis_acara')->nullable();
             $table->string('kategori_adat')->nullable();
@@ -21,16 +23,10 @@ return new class extends Migration
             $table->boolean('butuh_rias')->nullable();
             $table->enum('budget', ['Rendah', 'Sedang', 'Tinggi'])->nullable();
 
-            $table->string('size')->nullable(); // opsional, untuk kompatibilitas
-            $table->integer('priority')->default(1);
+            $table->unsignedInteger('priority')->default(1);
             $table->boolean('is_active')->default(true);
             $table->text('notes')->nullable();
             $table->timestamps();
-
-            $table->foreign('bundle_id')
-                ->references('id')
-                ->on('bundles')
-                ->nullOnDelete();
         });
     }
 

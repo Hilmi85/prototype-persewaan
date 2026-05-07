@@ -48,7 +48,12 @@ Route::post('/checkout/keranjang', [CheckoutController::class, 'storeCartCheckou
 
 Route::get('/checkout/bundle/{bundle}', [CheckoutController::class, 'showBundleCheckout'])->name('checkout.bundle.show');
 Route::post('/checkout/bundle/{bundle}', [CheckoutController::class, 'storeBundleCheckout'])->name('checkout.bundle.store');
+
 Route::get('/checkout/success/{orderCode}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/status/{orderCode}', [CheckoutController::class, 'paymentStatus'])->name('checkout.payment.status');
+Route::get('/checkout/receipt/{orderCode}', [CheckoutController::class, 'receipt'])->name('checkout.receipt');
+
+Route::post('/midtrans/notification', [PaymentController::class, 'midtransNotification'])->name('midtrans.notification');
 
 /*
 |--------------------------------------------------------------------------

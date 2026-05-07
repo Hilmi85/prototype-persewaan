@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class RecommendationRule extends Model
 {
@@ -18,7 +18,6 @@ class RecommendationRule extends Model
         'gender',
         'butuh_rias',
         'budget',
-        'size',
         'priority',
         'is_active',
         'notes',

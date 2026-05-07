@@ -1,339 +1,288 @@
 @extends('customer.layouts.master')
 
+@section('title', 'Hasil Rekomendasi - Quin Salon')
+
 @section('content')
 @php
-    $inputJenisAcara = $validated['jenis_acara'] ?? '-';
-    $inputKategoriItem = $validated['kategori_item'] ?? '-';
-    $inputKategoriAdat = $validated['kategori_adat'] ?? '-';
-    $inputGender = $validated['gender'] ?? '-';
-    $inputButuhRias = isset($validated['butuh_rias']) && (string) $validated['butuh_rias'] === '1' ? 'Ya' : 'Tidak';
-    $inputBudget = $validated['budget_category'] ?? $validated['budget'] ?? '-';
-
-    $isCustomResult = !$bundle;
-
-    $alternativeBundles = collect($alternativeBundles ?? []);
+    $hasBundle = filled($bundle);
+    $targetBundle = $bundle ?? $customBundle;
 @endphp
 
-<div class="container-fluid py-5" style="background-color: #fffaf5; min-height: 100vh;">
-    <div class="container py-5">
-        <div class="text-center mx-auto mb-5" style="max-width: 760px;">
-            <h6 class="text-uppercase mb-2" style="color: #b88352; letter-spacing: 2px; font-weight: 700;">
-                Hasil Rekomendasi
-            </h6>
-            <h2 class="fw-bold">Paket yang Direkomendasikan</h2>
-            <p class="text-muted mb-0">
-                Sistem mencocokkan input Anda dengan data bundle, item, dan item-varian yang tersedia.
-            </p>
-        </div>
+<style>
+    .result-page {
+        background: linear-gradient(135deg, #fffaf5 0%, #f8efe5 100%);
+        min-height: 100vh;
+        padding-top: 7rem;
+        padding-bottom: 4rem;
+    }
 
-        <div class="row justify-content-center mb-4">
-            <div class="col-lg-10">
-                <div class="bg-white rounded-4 shadow-sm p-4" style="border: 1px solid #f1e3d3;">
-                    <h5 class="fw-bold mb-3">Rule yang Diproses</h5>
+    .result-card {
+        background: white;
+        border: 1px solid rgba(139, 94, 60, .16);
+        border-radius: 28px;
+        box-shadow: 0 22px 60px rgba(60, 42, 33, .10);
+        overflow: hidden;
+    }
 
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Jenis Acara</small>
-                            <span class="fw-semibold">{{ $inputJenisAcara }}</span>
-                        </div>
+    .result-header {
+        background: linear-gradient(135deg, #8b5e3c, #c79358);
+        color: white;
+        padding: 2rem;
+    }
 
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Kategori Item</small>
-                            <span class="fw-semibold">{{ $inputKategoriItem }}</span>
-                        </div>
+    .criteria-box {
+        background: #fffaf5;
+        border: 1px solid #ead7c0;
+        border-radius: 18px;
+        padding: 1rem;
+    }
 
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Kategori Adat</small>
-                            <span class="fw-semibold">{{ $inputKategoriAdat }}</span>
-                        </div>
+    .bundle-item-box {
+        border: 1px solid #ead7c0;
+        border-radius: 18px;
+        padding: 1rem;
+        background: #fffaf5;
+        transition: .25s ease;
+    }
 
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Gender</small>
-                            <span class="fw-semibold">{{ $inputGender }}</span>
-                        </div>
+    .bundle-item-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(139, 94, 60, .12);
+    }
 
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Butuh Rias</small>
-                            <span class="fw-semibold">{{ $inputButuhRias }}</span>
-                        </div>
+    .btn-brown {
+        background: linear-gradient(135deg, #8b5e3c, #c79358);
+        color: #fff;
+        border: 0;
+        transition: .25s ease;
+    }
 
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Budget</small>
-                            <span class="fw-semibold">{{ $inputBudget }}</span>
-                        </div>
-                    </div>
+    .btn-brown:hover {
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(139, 94, 60, .22);
+    }
+</style>
 
-                    <div class="mt-4 p-3 rounded-4" style="background-color: #fff7ef; border: 1px solid #f0dfcf; color: #7a6456;">
-                        <strong>Rule-Based Logic:</strong>
-                        <div class="mt-2 small">
-                            IF jenis_acara = "{{ $inputJenisAcara }}"
-                            AND kategori_item = "{{ $inputKategoriItem }}"
-                            AND kategori_adat = "{{ $inputKategoriAdat }}"
-                            AND gender = "{{ $inputGender }}"
-                            AND butuh_rias = "{{ $inputButuhRias }}"
-                            AND budget = "{{ $inputBudget }}"
-                            THEN tampilkan paket sesuai data.
-                            ELSE tampilkan Paket Custom.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if ($bundle)
-            <div class="row justify-content-center mb-5">
-                <div class="col-lg-10">
-                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                        <div class="card-body p-4 p-md-5">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
-                                <div>
-                                    <span class="badge rounded-pill px-3 py-2 mb-3" style="background-color: #8b5e3c; color: #fff;">
-                                        Paket Utama
-                                    </span>
-
-                                    <h3 class="fw-bold mb-2">
-                                        {{ $bundle->bundle_name ?? 'Paket Rekomendasi' }}
-                                    </h3>
-
-                                    <p class="text-muted mb-0">
-                                        {{ $bundle->description ?? 'Paket ini dipilih berdasarkan kecocokan rule dengan data yang tersedia.' }}
-                                    </p>
-                                </div>
-
-                                <div class="text-md-end">
-                                    <small class="text-muted d-block">Kode Bundle</small>
-                                    <span class="fw-semibold">
-                                        {{ $bundle->bundle_code ?? '-' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-4">
-                                    <div class="p-3 rounded-4 h-100" style="background-color: #fffaf5; border: 1px solid #f1e3d3;">
-                                        <small class="text-muted d-block">Jenis Acara</small>
-                                        <span class="fw-semibold">{{ $bundle->jenis_acara ?? '-' }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="p-3 rounded-4 h-100" style="background-color: #fffaf5; border: 1px solid #f1e3d3;">
-                                        <small class="text-muted d-block">Kategori Adat</small>
-                                        <span class="fw-semibold">{{ $bundle->kategori_adat ?? '-' }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="p-3 rounded-4 h-100" style="background-color: #fffaf5; border: 1px solid #f1e3d3;">
-                                        <small class="text-muted d-block">Gender</small>
-                                        <span class="fw-semibold">{{ $bundle->gender ?? '-' }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="p-3 rounded-4 h-100" style="background-color: #fffaf5; border: 1px solid #f1e3d3;">
-                                        <small class="text-muted d-block">Butuh Rias</small>
-                                        <span class="fw-semibold">
-                                            {{ $bundle->butuh_rias ? 'Ya' : 'Tidak' }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="p-3 rounded-4 h-100" style="background-color: #fffaf5; border: 1px solid #f1e3d3;">
-                                        <small class="text-muted d-block">Budget</small>
-                                        <span class="fw-semibold">{{ $bundle->budget_category ?? '-' }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="p-3 rounded-4 h-100" style="background-color: #fffaf5; border: 1px solid #f1e3d3;">
-                                        <small class="text-muted d-block">Status Output</small>
-                                        <span class="badge bg-success">Sesuai Data</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <h5 class="fw-bold mb-3">Isi Paket Berdasarkan Data Item</h5>
-
-                                @if($bundle->bundleItems && $bundle->bundleItems->count())
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered align-middle mb-0">
-                                            <thead style="background-color: #fff7ef;">
-                                                <tr>
-                                                    <th>Item</th>
-                                                    <th>Kategori</th>
-                                                    <th>Adat</th>
-                                                    <th>Gender</th>
-                                                    <th>Jumlah</th>
-                                                    <th>Harga Item</th>
-                                                </tr>
-                                            </thead>
-
-                                            <tbody>
-                                                @foreach ($bundle->bundleItems as $bundleItem)
-                                                    @php
-                                                        $item = $bundleItem->item ?? null;
-                                                        $categoryName = $item->category->cat_name ?? '-';
-                                                        $itemPrice = $item->price ?? 0;
-                                                    @endphp
-
-                                                    <tr>
-                                                        <td class="fw-semibold">
-                                                            {{ $item->name ?? '-' }}
-                                                        </td>
-
-                                                        <td>
-                                                            {{ $categoryName }}
-                                                        </td>
-
-                                                        <td>
-                                                            {{ $item->adat_category ?? '-' }}
-                                                        </td>
-
-                                                        <td>
-                                                            {{ $item->gender ?? '-' }}
-                                                        </td>
-
-                                                        <td>
-                                                            {{ $bundleItem->quantity ?? 1 }}
-                                                        </td>
-
-                                                        <td>
-                                                            Rp{{ number_format($itemPrice, 0, ',', '.') }}
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @else
-                                    <div class="alert alert-warning mb-0">
-                                        Data item pada bundle ini belum tersedia.
-                                    </div>
-                                @endif
-                            </div>
-
-                            <div class="p-3 rounded-4 mb-4" style="background-color: #fff7ef; border: 1px solid #f0dfcf; color: #7a6456;">
-                                <strong>Hasil Rule:</strong>
-                                <div class="mt-2 small">
-                                    Data input customer cocok dengan paket
-                                    <strong>{{ $bundle->bundle_name ?? 'Paket Rekomendasi' }}</strong>,
-                                    sehingga sistem menampilkan paket ini sebagai rekomendasi utama.
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                <div>
-                                    <small class="text-muted d-block">Estimasi Harga Bundle</small>
-                                    <div class="fw-bold fs-4" style="color: #8b5e3c;">
-                                        Rp{{ number_format($bundle->price ?? 0, 0, ',', '.') }}
-                                    </div>
-                                </div>
-
-                                <a href="{{ route('checkout.bundle.show', $bundle->id) }}"
-                                   class="btn rounded-pill px-4 py-3"
-                                   style="background-color: #8b5e3c; color: #fff;">
-                                    Lanjut Checkout
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @else
-            <div class="row justify-content-center mb-5">
-                <div class="col-lg-8">
-                    <div class="text-center py-5 bg-white rounded-4 shadow-sm" style="border: 1px solid #f1e3d3;">
-                        <i class="fa fa-box-open mb-3" style="font-size: 52px; color: #b88352;"></i>
-
-                        <span class="badge rounded-pill px-3 py-2 mb-3 bg-warning text-dark">
-                            Paket Custom
-                        </span>
-
-                        <h4 class="fw-bold mb-2">Belum Ada Paket yang Cocok</h4>
-
-                        <p class="text-muted mb-4">
-                            Tidak ada bundle yang cocok dengan rule dan data yang tersedia.
-                            Sistem mengarahkan Anda ke Paket Custom.
-                        </p>
-
-                        <div class="mx-auto text-start p-3 rounded-4 mb-4"
-                             style="max-width: 620px; background-color: #fff7ef; border: 1px solid #f0dfcf; color: #7a6456;">
-                            <strong>ELSE Rule:</strong>
-                            <div class="mt-2 small">
-                                Karena tidak ditemukan bundle dengan kombinasi
-                                jenis acara, kategori item, kategori adat, gender, kebutuhan rias, dan budget tersebut,
-                                output sistem menjadi <strong>Paket Custom</strong>.
-                            </div>
-                        </div>
-
-                        <a href="{{ route('recommendation.index') }}"
-                           class="btn rounded-pill px-4 py-3"
-                           style="background-color: #8b5e3c; color: #fff;">
-                            Ubah Kriteria
-                        </a>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        @if ($alternativeBundles->count())
-            <div class="text-center mx-auto mb-4" style="max-width: 760px;">
-                <h4 class="fw-bold">Alternatif Paket</h4>
-                <p class="text-muted mb-0">
-                    Paket lain yang masih mendekati data rekomendasi Anda.
+<div class="result-page">
+    <div class="container">
+        <div class="result-card">
+            <div class="result-header text-center">
+                <span class="badge bg-light text-dark rounded-pill px-3 py-2 mb-3">
+                    {{ $hasBundle ? 'Rekomendasi Ditemukan' : 'Paket Custom' }}
+                </span>
+                <h2 class="fw-bold mb-2">
+                    {{ $hasBundle ? 'Paket yang Cocok Untuk Anda' : 'Belum Ada Rule yang Cocok' }}
+                </h2>
+                <p class="mb-0 opacity-75">
+                    {{ $hasBundle ? 'Hasil berikut berasal dari pencocokan rule aktif.' : 'Sistem mengarahkan Anda ke paket custom atau alternatif.' }}
                 </p>
             </div>
 
-            <div class="row g-4">
-                @foreach ($alternativeBundles as $altBundle)
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card border-0 shadow-sm rounded-4 h-100">
-                            <div class="card-body p-4 d-flex flex-column">
-                                <span class="badge rounded-pill px-3 py-2 mb-3 align-self-start"
-                                      style="background-color: #fff7ef; color: #8b5e3c; border: 1px solid #f0dfcf;">
-                                    Alternatif
-                                </span>
+            <div class="p-4 p-lg-5">
+                <h5 class="fw-bold mb-3">Input Customer</h5>
 
-                                <h5 class="fw-bold mb-2">
-                                    {{ $altBundle->bundle_name ?? '-' }}
-                                </h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="criteria-box h-100">
+                            <small class="text-muted d-block">Jenis Acara</small>
+                            <strong>{{ $criteria['jenis_acara'] ?? '-' }}</strong>
+                        </div>
+                    </div>
 
-                                <p class="text-muted mb-3">
-                                    {{ $altBundle->description ?? 'Paket alternatif berdasarkan data yang tersedia.' }}
+                    <div class="col-md-4">
+                        <div class="criteria-box h-100">
+                            <small class="text-muted d-block">Kategori Adat</small>
+                            <strong>{{ $criteria['kategori_adat'] ?? '-' }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="criteria-box h-100">
+                            <small class="text-muted d-block">Gender</small>
+                            <strong>{{ $criteria['gender'] ?? '-' }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="criteria-box h-100">
+                            <small class="text-muted d-block">Butuh Rias</small>
+                            <strong>{{ !empty($criteria['butuh_rias']) ? 'Ya' : 'Tidak' }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="criteria-box h-100">
+                            <small class="text-muted d-block">Budget</small>
+                            <strong>{{ $criteria['budget'] ?? '-' }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                @if($selectedRule)
+                    <div class="alert alert-success rounded-4">
+                        <strong>Rule yang cocok:</strong>
+                        {{ $selectedRule->rule_name }}
+                        <span class="text-muted">({{ $selectedRule->rule_code }})</span>
+                    </div>
+                @else
+                    <div class="alert alert-warning rounded-4">
+                        <strong>Rule utama tidak ditemukan.</strong>
+                        Sistem menampilkan paket yang paling mendekati atau paket custom.
+                    </div>
+                @endif
+
+                @if($targetBundle)
+                    <div class="row g-4 align-items-stretch">
+                        <div class="col-lg-7">
+                            <div class="criteria-box h-100">
+                                <h3 class="fw-bold mb-2" style="color:#3c2a21;">
+                                    {{ $targetBundle->bundle_name }}
+                                </h3>
+
+                                <p class="text-muted">
+                                    {{ $targetBundle->description ?: 'Paket bundling sesuai kebutuhan acara customer.' }}
                                 </p>
 
-                                <div class="small text-muted mb-3">
-                                    <div>Jenis Acara: {{ $altBundle->jenis_acara ?? '-' }}</div>
-                                    <div>Adat: {{ $altBundle->kategori_adat ?? '-' }}</div>
-                                    <div>Gender: {{ $altBundle->gender ?? '-' }}</div>
-                                    <div>Budget: {{ $altBundle->budget_category ?? '-' }}</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Jenis Acara</small>
+                                        <strong>{{ $targetBundle->jenis_acara ?? '-' }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Kategori Adat</small>
+                                        <strong>{{ $targetBundle->kategori_adat ?? '-' }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Gender</small>
+                                        <strong>{{ $targetBundle->gender ?? '-' }}</strong>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted d-block">Budget</small>
+                                        <strong>{{ $targetBundle->budget_category ?? '-' }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-5">
+                            <div class="criteria-box h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <small class="text-muted d-block">Estimasi Harga Paket</small>
+                                    <div class="fw-bold display-6" style="color:#8b5e3c;">
+                                        Rp{{ number_format($targetBundle->price, 0, ',', '.') }}
+                                    </div>
                                 </div>
 
-                                <div class="mt-auto d-flex justify-content-between align-items-center">
-                                    <div class="fw-bold" style="color: #8b5e3c;">
-                                        Rp{{ number_format($altBundle->price ?? 0, 0, ',', '.') }}
-                                    </div>
+                                <div class="d-grid gap-2 mt-4">
+                                    <a href="{{ route('bundle.show', $targetBundle->id) }}" class="btn btn-outline-secondary rounded-pill py-3">
+                                        Lihat Detail Paket
+                                    </a>
 
-                                    <a href="{{ route('bundle.show', $altBundle->id) }}"
-                                       class="btn rounded-pill px-3 py-2"
-                                       style="background-color: #8b5e3c; color: #fff;">
-                                        Detail
+                                    <a href="{{ route('checkout.bundle.show', $targetBundle->id) }}" class="btn btn-brown rounded-pill py-3 fw-bold">
+                                        Lanjut Checkout
                                     </a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                @endforeach
-            </div>
-        @endif
 
-        <div class="text-center mt-5">
-            <a href="{{ route('recommendation.index') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
-                Coba Lagi
-            </a>
+                    <div class="mt-5">
+                        <h5 class="fw-bold mb-3">Isi Paket dan Ketersediaan Varian</h5>
+
+                        <div class="row g-3">
+                            @forelse($targetBundle->bundleItems as $bundleItem)
+                                @php
+                                    $item = $bundleItem->item;
+                                    $availableVariants = $item
+                                        ? $item->itemVariants->where('is_active', true)->where('available_stock', '>', 0)
+                                        : collect();
+                                @endphp
+
+                                <div class="col-md-6">
+                                    <div class="bundle-item-box h-100">
+                                        <div class="d-flex justify-content-between gap-3 mb-2">
+                                            <div>
+                                                <h6 class="fw-bold mb-1">{{ $item->name ?? '-' }}</h6>
+                                                <small class="text-muted">
+                                                    {{ $item->category->cat_name ?? '-' }} • Qty {{ $bundleItem->quantity }}
+                                                </small>
+                                            </div>
+
+                                            @if($availableVariants->count())
+                                                <span class="badge bg-success align-self-start">Tersedia</span>
+                                            @else
+                                                <span class="badge bg-danger align-self-start">Perlu Konfirmasi</span>
+                                            @endif
+                                        </div>
+
+                                        @if($availableVariants->count())
+                                            <small class="text-muted d-block mb-1">Varian tersedia:</small>
+                                            @foreach($availableVariants->take(3) as $variant)
+                                                <span class="badge bg-light text-dark border me-1 mb-1">
+                                                    {{ $variant->size ?? '-' }} / {{ $variant->color ?? '-' }}
+                                                    stok {{ $variant->available_stock }}
+                                                </span>
+                                            @endforeach
+                                        @else
+                                            <small class="text-muted">
+                                                Stok varian belum tersedia atau perlu diverifikasi admin.
+                                            </small>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="col-12">
+                                    <div class="alert alert-warning rounded-4 mb-0">
+                                        Isi item pada paket ini belum diatur oleh admin.
+                                    </div>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                @else
+                    <div class="text-center py-5">
+                        <h4 class="fw-bold mb-2">Belum Ada Paket Custom</h4>
+                        <p class="text-muted">
+                            Admin perlu membuat bundle dengan status custom agar sistem punya fallback rekomendasi.
+                        </p>
+                        <a href="{{ route('recommendation.index') }}" class="btn btn-brown rounded-pill px-4 py-3">
+                            Ubah Kriteria
+                        </a>
+                    </div>
+                @endif
+
+                @if($alternativeBundles->count())
+                    <div class="mt-5">
+                        <h5 class="fw-bold mb-3">Alternatif Paket</h5>
+
+                        <div class="row g-3">
+                            @foreach($alternativeBundles as $alternative)
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="criteria-box h-100">
+                                        <h6 class="fw-bold">{{ $alternative->bundle_name }}</h6>
+                                        <small class="text-muted d-block mb-2">
+                                            {{ $alternative->jenis_acara ?? '-' }} • {{ $alternative->budget_category ?? '-' }}
+                                        </small>
+                                        <strong style="color:#8b5e3c;">
+                                            Rp{{ number_format($alternative->price, 0, ',', '.') }}
+                                        </strong>
+                                        <a href="{{ route('bundle.show', $alternative->id) }}" class="btn btn-sm btn-outline-secondary rounded-pill w-100 mt-3">
+                                            Detail
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div class="text-center mt-5">
+                    <a href="{{ route('recommendation.index') }}" class="btn btn-outline-secondary rounded-pill px-4 py-3">
+                        Cari Rekomendasi Lagi
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Models\Bundle;
-use App\Models\Item;
-use App\Models\ItemVariant;
 use App\Models\RecommendationRule;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -15,7 +13,6 @@ class RuleBasedRecommendationService
     {
         $bundles = Bundle::query()->where('is_active', true)->get();
         $rules = RecommendationRule::query()->where('is_active', true)->get();
-        $items = Item::with('category')->where('is_active', true)->get();
 
         return [
             'jenisAcaraOptions' => $this->cleanOptions(
@@ -23,60 +20,20 @@ class RuleBasedRecommendationService
                     ->merge($bundles->pluck('jenis_acara'))
                     ->merge($rules->pluck('jenis_acara'))
             ),
-            'kategoriItemOptions' => $this->cleanOptions(
-                $items->map(fn ($item) => $item->category->cat_name ?? null)
-            ),
             'kategoriAdatOptions' => $this->cleanOptions(
-                $bundles->pluck('kategori_adat')
+                collect(['Jawa', 'Sunda', 'Bali', 'Minang', 'Modern'])
+                    ->merge($bundles->pluck('kategori_adat'))
                     ->merge($rules->pluck('kategori_adat'))
-                    ->merge($items->pluck('adat_category'))
             ),
-            'genderOptions' => $this->cleanOptions(
-                collect(['Laki-laki', 'Perempuan', 'Unisex', 'Pasangan'])
-                    ->merge($bundles->pluck('gender'))
-                    ->merge($rules->pluck('gender'))
-                    ->merge($items->pluck('gender'))
-            ),
-            'budgetOptions' => $this->cleanOptions(
-                collect(['Rendah', 'Sedang', 'Tinggi'])
-                    ->merge($bundles->pluck('budget_category'))
-                    ->merge($rules->pluck('budget'))
-            ),
+            'genderOptions' => collect(['Laki-laki', 'Perempuan', 'Unisex']),
+            'budgetOptions' => collect(['Rendah', 'Sedang', 'Tinggi']),
         ];
-    }
-
-    public function variantOptions(): Collection
-    {
-        return ItemVariant::with('item.category')
-            ->where('is_active', true)
-            ->where('available_stock', '>', 0)
-            ->get()
-            ->map(function (ItemVariant $variant) {
-                $item = $variant->item;
-
-                return [
-                    'id' => $variant->id,
-                    'item_id' => $item->id ?? $variant->item_id,
-                    'item_name' => $item->name ?? '-',
-                    'kategori_item' => $item->category->cat_name ?? '-',
-                    'item_type' => $item->item_type ?? '-',
-                    'kategori_adat' => $item->adat_category ?? '-',
-                    'gender' => $item->gender ?? '-',
-                    'sku_code' => $variant->sku_code ?? '-',
-                    'size' => $variant->size ?? '-',
-                    'color' => $variant->color ?? '-',
-                    'stock' => $variant->stock ?? 0,
-                    'available_stock' => $variant->available_stock ?? 0,
-                    'daily_price' => (float) ($variant->daily_price ?? $item->price ?? 0),
-                    'is_rias' => $this->isRiasVariant($variant),
-                ];
-            })
-            ->values();
     }
 
     public function findRecommendation(array $criteria): array
     {
         $criteria['budget'] = $criteria['budget_category'] ?? $criteria['budget'] ?? null;
+        $criteria['butuh_rias'] = filter_var($criteria['butuh_rias'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         $selectedRule = $this->findMatchingRule($criteria);
         $bundle = $selectedRule?->bundle;
@@ -85,46 +42,55 @@ class RuleBasedRecommendationService
             $bundle = $this->findMatchingBundle($criteria);
         }
 
-        $alternativeBundles = $this->alternativeBundles($criteria, $bundle?->id);
+        if ($bundle) {
+            $bundle->loadMissing(['bundleItems.item.category', 'bundleItems.item.itemVariants']);
+        }
+
+        $customBundle = Bundle::with(['bundleItems.item.category', 'bundleItems.item.itemVariants'])
+            ->where('is_active', true)
+            ->where('is_custom', true)
+            ->orderBy('price')
+            ->first();
 
         return [
             'bundle' => $bundle,
             'selectedRule' => $selectedRule,
-            'alternativeBundles' => $alternativeBundles,
+            'customBundle' => $customBundle,
+            'alternativeBundles' => $this->alternativeBundles($criteria, $bundle?->id),
+            'availabilitySummary' => $bundle ? $this->availabilitySummary($bundle) : null,
         ];
     }
 
     public function findMatchingRule(array $criteria): ?RecommendationRule
     {
-        return RecommendationRule::with(['bundle.bundleItems.item.category', 'bundle.bundleItems.itemVariant'])
+        return RecommendationRule::with(['bundle.bundleItems.item.category', 'bundle.bundleItems.item.itemVariants'])
             ->where('is_active', true)
-            ->whereHas('bundle', fn ($q) => $q->where('is_active', true))
+            ->whereHas('bundle', fn ($query) => $query->where('is_active', true))
             ->orderBy('priority')
+            ->orderBy('id')
             ->get()
             ->first(fn (RecommendationRule $rule) => $this->ruleMatches($rule, $criteria));
     }
 
     public function findMatchingBundle(array $criteria): ?Bundle
     {
-        return Bundle::with(['bundleItems.item.category', 'bundleItems.itemVariant'])
+        return Bundle::with(['bundleItems.item.category', 'bundleItems.item.itemVariants'])
             ->where('is_active', true)
-            ->where(function ($q) use ($criteria) {
-                $q->where('jenis_acara', $criteria['jenis_acara'])->orWhereNull('jenis_acara');
+            ->where('is_custom', false)
+            ->where(function ($query) use ($criteria) {
+                $query->where('jenis_acara', $criteria['jenis_acara'])->orWhereNull('jenis_acara');
             })
-            ->where(function ($q) use ($criteria) {
-                $q->where('kategori_adat', $criteria['kategori_adat'])->orWhereNull('kategori_adat');
+            ->where(function ($query) use ($criteria) {
+                $query->where('kategori_adat', $criteria['kategori_adat'])->orWhereNull('kategori_adat');
             })
-            ->where(function ($q) use ($criteria) {
-                $q->where('gender', $criteria['gender'])->orWhere('gender', 'Unisex')->orWhereNull('gender');
+            ->where(function ($query) use ($criteria) {
+                $query->where('gender', $criteria['gender'])->orWhere('gender', 'Unisex')->orWhereNull('gender');
             })
-            ->where(function ($q) use ($criteria) {
-                $q->where('butuh_rias', (bool) $criteria['butuh_rias'])->orWhereNull('butuh_rias');
+            ->where(function ($query) use ($criteria) {
+                $query->where('butuh_rias', (bool) $criteria['butuh_rias'])->orWhereNull('butuh_rias');
             })
-            ->where(function ($q) use ($criteria) {
-                $q->where('budget_category', $criteria['budget'])->orWhereNull('budget_category');
-            })
-            ->whereHas('bundleItems.item.category', function ($query) use ($criteria) {
-                $query->where('cat_name', $criteria['kategori_item']);
+            ->where(function ($query) use ($criteria) {
+                $query->where('budget_category', $criteria['budget'])->orWhereNull('budget_category');
             })
             ->orderBy('price')
             ->first();
@@ -132,19 +98,18 @@ class RuleBasedRecommendationService
 
     public function alternativeBundles(array $criteria, ?int $excludeBundleId = null): Collection
     {
-        return Bundle::with(['bundleItems.item.category'])
+        return Bundle::with(['bundleItems.item.category', 'bundleItems.item.itemVariants'])
             ->where('is_active', true)
-            ->when($excludeBundleId, fn ($q) => $q->where('id', '!=', $excludeBundleId))
-            ->where(function ($q) use ($criteria) {
-                $q->where('jenis_acara', $criteria['jenis_acara'] ?? null)
+            ->when($excludeBundleId, fn ($query) => $query->where('id', '!=', $excludeBundleId))
+            ->where(function ($query) use ($criteria) {
+                $query->where('jenis_acara', $criteria['jenis_acara'] ?? null)
                     ->orWhere('kategori_adat', $criteria['kategori_adat'] ?? null)
                     ->orWhere('gender', $criteria['gender'] ?? null)
-                    ->orWhere('budget_category', $criteria['budget'] ?? null);
+                    ->orWhere('budget_category', $criteria['budget'] ?? null)
+                    ->orWhere('is_custom', true);
             })
-            ->whereHas('bundleItems.item.category', function ($query) use ($criteria) {
-                $query->where('cat_name', $criteria['kategori_item'] ?? null);
-            })
-            ->latest()
+            ->orderBy('is_custom')
+            ->orderBy('price')
             ->take(4)
             ->get();
     }
@@ -152,10 +117,6 @@ class RuleBasedRecommendationService
     public function ruleMatches(RecommendationRule $rule, array $criteria): bool
     {
         if (!$this->fieldMatches($rule->jenis_acara, $criteria['jenis_acara'] ?? null)) {
-            return false;
-        }
-
-        if (!$this->fieldMatches($rule->kategori_item, $criteria['kategori_item'] ?? null)) {
             return false;
         }
 
@@ -175,22 +136,36 @@ class RuleBasedRecommendationService
             return false;
         }
 
-        if (!$rule->bundle) {
-            return false;
-        }
-
-        return $this->bundleHasCategory($rule->bundle, $criteria['kategori_item'] ?? null);
+        return (bool) $rule->bundle;
     }
 
-    public function bundleHasCategory(Bundle $bundle, ?string $category): bool
+    public function availabilitySummary(Bundle $bundle): array
     {
-        if (!filled($category)) {
-            return true;
-        }
+        $bundle->loadMissing(['bundleItems.item.itemVariants']);
 
-        return $bundle->bundleItems->contains(function ($bundleItem) use ($category) {
-            return ($bundleItem->item->category->cat_name ?? null) === $category;
+        $items = $bundle->bundleItems->map(function ($bundleItem) {
+            $item = $bundleItem->item;
+            $availableVariants = $item
+                ? $item->itemVariants
+                    ->where('is_active', true)
+                    ->where('available_stock', '>', 0)
+                    ->values()
+                : collect();
+
+            return [
+                'bundle_item' => $bundleItem,
+                'item' => $item,
+                'available_variants' => $availableVariants,
+                'is_available' => $availableVariants->isNotEmpty(),
+            ];
         });
+
+        return [
+            'total_items' => $items->count(),
+            'available_items' => $items->where('is_available', true)->count(),
+            'unavailable_items' => $items->where('is_available', false)->count(),
+            'items' => $items,
+        ];
     }
 
     public function buildRuleCode(array $data, ?int $ignoreId = null): string
@@ -198,9 +173,11 @@ class RuleBasedRecommendationService
         $base = collect([
             'RULE',
             $data['jenis_acara'] ?? null,
-            $data['kategori_item'] ?? null,
             $data['kategori_adat'] ?? null,
             $data['gender'] ?? null,
+            array_key_exists('butuh_rias', $data) && !is_null($data['butuh_rias'])
+                ? ((bool) $data['butuh_rias'] ? 'RIAS' : 'TANPA-RIAS')
+                : null,
             $data['budget'] ?? null,
             $data['priority'] ?? null,
         ])->filter(fn ($value) => filled($value))
@@ -212,7 +189,7 @@ class RuleBasedRecommendationService
         $counter = 1;
 
         while (RecommendationRule::where('rule_code', $code)
-            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
             ->exists()) {
             $code = $base . '-' . $counter;
             $counter++;
@@ -221,16 +198,16 @@ class RuleBasedRecommendationService
         return $code;
     }
 
-    private function fieldMatches($ruleValue, $inputValue): bool
+    private function fieldMatches(mixed $ruleValue, mixed $inputValue): bool
     {
         if (!filled($ruleValue)) {
             return true;
         }
 
-        return (string) $ruleValue === (string) $inputValue;
+        return Str::lower(trim((string) $ruleValue)) === Str::lower(trim((string) $inputValue));
     }
 
-    private function genderMatches($ruleGender, $inputGender): bool
+    private function genderMatches(mixed $ruleGender, mixed $inputGender): bool
     {
         if (!filled($ruleGender)) {
             return true;
@@ -238,10 +215,6 @@ class RuleBasedRecommendationService
 
         if ((string) $ruleGender === 'Unisex') {
             return true;
-        }
-
-        if ((string) $inputGender === 'Pasangan') {
-            return in_array($ruleGender, ['Pasangan', 'Unisex'], true);
         }
 
         return (string) $ruleGender === (string) $inputGender;
@@ -255,15 +228,5 @@ class RuleBasedRecommendationService
             ->unique()
             ->sort()
             ->values();
-    }
-
-    private function isRiasVariant(ItemVariant $variant): bool
-    {
-        $item = $variant->item;
-        $category = Str::lower($item->category->cat_name ?? '');
-        $type = Str::lower($item->item_type ?? '');
-        $name = Str::lower($item->name ?? '');
-
-        return str_contains($category, 'rias') || str_contains($type, 'rias') || str_contains($name, 'rias');
     }
 }

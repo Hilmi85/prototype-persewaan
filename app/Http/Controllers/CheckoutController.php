@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\MidtransSnapService;
 use App\Models\Bundle;
 use App\Models\ContactSetting;
 use App\Models\Item;
@@ -17,12 +18,22 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CheckoutController extends Controller
 {
     public function showBundleCheckout(Bundle $bundle)
     {
-        $bundle->load('bundleItems.item');
+        abort_if(!$bundle->is_active, 404);
+
+        $bundle->load([
+            'bundleItems.item.category',
+            'bundleItems.item.itemVariants' => fn ($query) => $query
+                ->where('is_active', true)
+                ->orderBy('size')
+                ->orderBy('color'),
+        ]);
+
         $contact = ContactSetting::where('is_active', true)->first();
 
         return view('customer.checkout-bundle', compact('bundle', 'contact'));
@@ -30,40 +41,43 @@ class CheckoutController extends Controller
 
     public function storeBundleCheckout(Request $request, Bundle $bundle)
     {
-        $validated = $request->validate([
-            'fullname' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'required|string|max:20',
-            'address' => 'nullable|string',
-            'jenis_acara' => 'nullable|string|max:255',
-            'kategori_adat' => 'nullable|string|max:255',
-            'gender' => 'nullable|in:Laki-laki,Perempuan',
-            'butuh_rias' => 'required|boolean',
-            'budget' => 'nullable|in:Rendah,Sedang,Tinggi',
-            'payment_method' => 'required|in:tunai,qris',
-            'event_date' => 'nullable|date',
-            'rental_start' => 'nullable|date',
-            'rental_end' => 'nullable|date|after_or_equal:rental_start',
-            'makeup_date' => 'nullable|date',
-            'notes' => 'nullable|string',
+        abort_if(!$bundle->is_active, 404);
+
+        $bundle->load([
+            'bundleItems.item.category',
+            'bundleItems.item.itemVariants' => fn ($query) => $query
+                ->where('is_active', true)
+                ->orderBy('size')
+                ->orderBy('color'),
         ]);
+
+        if ($bundle->bundleItems->isEmpty()) {
+            return back()
+                ->withInput()
+                ->with('error', 'Isi paket belum diatur oleh admin.');
+        }
+
+        $validated = $this->validateCheckout($request);
+        $selectedVariants = $request->input('bundle_variants', []);
 
         DB::beginTransaction();
 
         try {
+            $bundleComponents = $this->prepareBundleComponents($bundle, $selectedVariants);
             $user = $this->findOrCreateCustomer($validated);
+            $total = (int) round($bundle->price);
 
             $order = Order::create([
-                'order_code' => 'ORD-' . strtoupper(Str::random(8)),
+                'order_code' => $this->generateOrderCode(),
                 'user_id' => $user->id,
                 'jenis_acara' => $validated['jenis_acara'] ?? $bundle->jenis_acara,
                 'kategori_adat' => $validated['kategori_adat'] ?? $bundle->kategori_adat,
                 'gender' => $validated['gender'] ?? $bundle->gender,
                 'butuh_rias' => (bool) $validated['butuh_rias'],
                 'budget' => $validated['budget'] ?? $bundle->budget_category,
-                'subtotal' => $bundle->price,
+                'subtotal' => $total,
                 'tax' => 0,
-                'grand_total' => $bundle->price,
+                'grand_total' => $total,
                 'status' => 'pending',
                 'payment_method' => $validated['payment_method'],
                 'note' => $validated['notes'] ?? null,
@@ -73,40 +87,60 @@ class CheckoutController extends Controller
                 'order_id' => $order->id,
                 'bundle_id' => $bundle->id,
                 'quantity' => 1,
-                'price' => $bundle->price,
-                'total_price' => $bundle->price,
+                'price' => $total,
+                'total_price' => $total,
             ]);
 
-            RentalBooking::create([
-                'order_id' => $order->id,
-                'booking_code' => 'BOOK-' . strtoupper(Str::random(8)),
+            foreach ($bundleComponents as $component) {
+                $orderItem = OrderItem::create([
+                    'order_id' => $order->id,
+                    'item_id' => $component['item']->id,
+                    'quantity' => $component['quantity'],
+                    'price' => 0,
+                    'tax' => 0,
+                    'total_price' => 0,
+                ]);
+
+                if ($component['variant']) {
+                    OrderItemVariant::create([
+                        'order_item_id' => $orderItem->id,
+                        'item_variant_id' => $component['variant']->id,
+                        'qty' => $component['quantity'],
+                        'unit_price' => 0,
+                        'subtotal_price' => 0,
+                    ]);
+
+                    $this->decreaseVariantStock($component['variant'], $component['quantity']);
+                }
+            }
+
+            $this->createRentalBooking($order, $validated, [
                 'event_type' => $validated['jenis_acara'] ?? $bundle->jenis_acara,
                 'gender' => $validated['gender'] ?? $bundle->gender,
-                'rental_start' => $validated['rental_start'] ?? null,
-                'rental_end' => $validated['rental_end'] ?? null,
-                'event_date' => $validated['event_date'] ?? null,
-                'makeup_date' => $validated['makeup_date'] ?? null,
-                'booking_status' => 'pending',
-                'notes' => $validated['notes'] ?? null,
             ]);
 
-            Payment::create([
-                'order_id' => $order->id,
-                'payment_code' => 'PAY-' . strtoupper(Str::random(8)),
-                'method' => $validated['payment_method'],
-                'amount' => $bundle->price,
-                'payment_status' => 'pending',
-            ]);
+            $this->createPayment(
+                $order,
+                $validated['payment_method'],
+                $total,
+                $this->buildBundleSnapItems($bundle, $total)
+            );
 
             DB::commit();
 
             return redirect()
                 ->route('checkout.success', $order->order_code)
                 ->with('success', 'Checkout paket berhasil dibuat.');
+        } catch (ValidationException $e) {
+            DB::rollBack();
+
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return back()->withInput()->with('error', 'Checkout paket gagal diproses. ' . $e->getMessage());
+            return back()
+                ->withInput()
+                ->with('error', 'Checkout paket gagal diproses. ' . $e->getMessage());
         }
     }
 
@@ -115,10 +149,21 @@ class CheckoutController extends Controller
         $cart = session()->get('cart', []);
 
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Keranjang masih kosong.');
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Keranjang masih kosong.');
         }
 
-        [$cartItems, $subtotal] = $this->buildCartSummary($cart);
+        [$cartItems, $subtotal, $cleanCart] = $this->buildCartSummary($cart);
+
+        session()->put('cart', $cleanCart);
+
+        if (empty($cartItems)) {
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Tidak ada item valid di keranjang.');
+        }
+
         $contact = ContactSetting::where('is_active', true)->first();
 
         return view('customer.checkout-cart', compact('cartItems', 'subtotal', 'contact'));
@@ -126,43 +171,31 @@ class CheckoutController extends Controller
 
     public function storeCartCheckout(Request $request)
     {
-        $validated = $request->validate([
-            'fullname' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'required|string|max:20',
-            'address' => 'nullable|string',
-            'jenis_acara' => 'nullable|string|max:255',
-            'kategori_adat' => 'nullable|string|max:255',
-            'gender' => 'nullable|in:Laki-laki,Perempuan',
-            'butuh_rias' => 'required|boolean',
-            'budget' => 'nullable|in:Rendah,Sedang,Tinggi',
-            'payment_method' => 'required|in:tunai,qris',
-            'event_date' => 'nullable|date',
-            'rental_start' => 'nullable|date',
-            'rental_end' => 'nullable|date|after_or_equal:rental_start',
-            'makeup_date' => 'nullable|date',
-            'notes' => 'nullable|string',
-        ]);
-
+        $validated = $this->validateCheckout($request);
         $cart = session()->get('cart', []);
 
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Keranjang masih kosong.');
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Keranjang masih kosong.');
         }
 
         [$cartItems, $subtotal] = $this->buildCartSummary($cart);
 
         if (empty($cartItems)) {
-            return redirect()->route('cart.index')->with('error', 'Tidak ada item valid di keranjang.');
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Tidak ada item valid di keranjang.');
         }
 
         DB::beginTransaction();
 
         try {
+            $cartItems = $this->validateCartStockBeforeCheckout($cartItems);
             $user = $this->findOrCreateCustomer($validated);
 
             $order = Order::create([
-                'order_code' => 'ORD-' . strtoupper(Str::random(8)),
+                'order_code' => $this->generateOrderCode(),
                 'user_id' => $user->id,
                 'jenis_acara' => $validated['jenis_acara'] ?? null,
                 'kategori_adat' => $validated['kategori_adat'] ?? null,
@@ -195,29 +228,22 @@ class CheckoutController extends Controller
                         'unit_price' => $cartItem['price'],
                         'subtotal_price' => $cartItem['total_price'],
                     ]);
+
+                    $this->decreaseVariantStock($cartItem['variant'], $cartItem['quantity']);
                 }
             }
 
-            RentalBooking::create([
-                'order_id' => $order->id,
-                'booking_code' => 'BOOK-' . strtoupper(Str::random(8)),
+            $this->createRentalBooking($order, $validated, [
                 'event_type' => $validated['jenis_acara'] ?? null,
                 'gender' => $validated['gender'] ?? null,
-                'rental_start' => $validated['rental_start'] ?? null,
-                'rental_end' => $validated['rental_end'] ?? null,
-                'event_date' => $validated['event_date'] ?? null,
-                'makeup_date' => $validated['makeup_date'] ?? null,
-                'booking_status' => 'pending',
-                'notes' => $validated['notes'] ?? null,
             ]);
 
-            Payment::create([
-                'order_id' => $order->id,
-                'payment_code' => 'PAY-' . strtoupper(Str::random(8)),
-                'method' => $validated['payment_method'],
-                'amount' => $subtotal,
-                'payment_status' => 'pending',
-            ]);
+            $this->createPayment(
+                $order,
+                $validated['payment_method'],
+                $subtotal,
+                $this->buildCartSnapItems($cartItems)
+            );
 
             session()->forget('cart');
 
@@ -226,48 +252,242 @@ class CheckoutController extends Controller
             return redirect()
                 ->route('checkout.success', $order->order_code)
                 ->with('success', 'Checkout keranjang berhasil dibuat.');
+        } catch (ValidationException $e) {
+            DB::rollBack();
+
+            throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return back()->withInput()->with('error', 'Checkout keranjang gagal diproses. ' . $e->getMessage());
+            return back()
+                ->withInput()
+                ->with('error', 'Checkout keranjang gagal diproses. ' . $e->getMessage());
         }
     }
 
-    public function success($orderCode)
+    public function success(string $orderCode)
     {
         $order = Order::with([
             'user',
-            'orderBundles.bundle',
-            'orderItems.item',
+            'orderBundles.bundle.bundleItems.item',
+            'orderItems.item.category',
+            'orderItems.orderItemVariants.itemVariant',
             'payments',
             'rentalBookings',
-        ])->where('order_code', $orderCode)->firstOrFail();
+        ])
+            ->where('order_code', $orderCode)
+            ->firstOrFail();
 
-        return view('customer.checkout-success', compact('order'));
+        $payment = $order->payments->first();
+
+        $midtransSnap = app(MidtransSnapService::class);
+        $snapJsUrl = $midtransSnap->snapJsUrl();
+        $midtransClientKey = config('midtrans.client_key');
+
+        return view('customer.checkout-success', compact(
+            'order',
+            'payment',
+            'snapJsUrl',
+            'midtransClientKey'
+        ));
+    }
+
+    private function validateCheckout(Request $request): array
+    {
+        return $request->validate([
+            'fullname' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'required|string|max:20',
+            'address' => 'nullable|string',
+            'jenis_acara' => 'nullable|string|max:255',
+            'kategori_adat' => 'nullable|string|max:255',
+            'gender' => 'nullable|in:Laki-laki,Perempuan,Unisex',
+            'butuh_rias' => 'required|boolean',
+            'budget' => 'nullable|in:Rendah,Sedang,Tinggi',
+            'payment_method' => 'required|in:tunai,qris',
+            'event_date' => 'required|date',
+            'rental_start' => 'required|date',
+            'rental_end' => 'required|date|after_or_equal:rental_start',
+            'makeup_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ], [
+            'event_date.required' => 'Tanggal acara wajib diisi.',
+            'rental_start.required' => 'Tanggal mulai sewa wajib diisi.',
+            'rental_end.required' => 'Tanggal selesai sewa wajib diisi.',
+            'rental_end.after_or_equal' => 'Tanggal selesai sewa tidak boleh sebelum tanggal mulai sewa.',
+        ]);
+    }
+
+    private function prepareBundleComponents(Bundle $bundle, array $selectedVariants): array
+    {
+        $components = [];
+
+        foreach ($bundle->bundleItems as $bundleItem) {
+            $item = $bundleItem->item;
+
+            if (!$item || !$item->is_active) {
+                throw ValidationException::withMessages([
+                    'bundle_items' => 'Salah satu item pada bundle tidak aktif atau tidak tersedia.',
+                ]);
+            }
+
+            $quantity = max(1, (int) $bundleItem->quantity);
+            $availableVariants = $item->itemVariants
+                ->where('is_active', true)
+                ->where('available_stock', '>', 0);
+
+            $variant = null;
+
+            if ($item->item_type !== 'jasa_rias') {
+                if ($availableVariants->isEmpty()) {
+                    throw ValidationException::withMessages([
+                        'bundle_variants' => 'Item ' . $item->name . ' belum memiliki varian tersedia.',
+                    ]);
+                }
+
+                $selectedVariantId = $selectedVariants[$item->id] ?? null;
+
+                if (!$selectedVariantId) {
+                    throw ValidationException::withMessages([
+                        'bundle_variants.' . $item->id => 'Pilih varian untuk item ' . $item->name . '.',
+                    ]);
+                }
+
+                $variant = ItemVariant::where('item_id', $item->id)
+                    ->where('is_active', true)
+                    ->lockForUpdate()
+                    ->find($selectedVariantId);
+
+                if (!$variant || $variant->available_stock < $quantity) {
+                    throw ValidationException::withMessages([
+                        'bundle_variants.' . $item->id => 'Stok varian untuk item ' . $item->name . ' tidak mencukupi.',
+                    ]);
+                }
+            }
+
+            $components[] = [
+                'item' => $item,
+                'variant' => $variant,
+                'quantity' => $quantity,
+            ];
+        }
+
+        return $components;
+    }
+
+    private function validateCartStockBeforeCheckout(array $cartItems): array
+    {
+        $validatedCartItems = [];
+
+        foreach ($cartItems as $cartItem) {
+            $variant = null;
+
+            if ($cartItem['variant']) {
+                $variant = ItemVariant::where('item_id', $cartItem['item']->id)
+                    ->where('is_active', true)
+                    ->lockForUpdate()
+                    ->find($cartItem['variant']->id);
+
+                if (!$variant || $variant->available_stock < $cartItem['quantity']) {
+                    throw ValidationException::withMessages([
+                        'cart' => 'Stok varian ' . $cartItem['item']->name . ' tidak mencukupi.',
+                    ]);
+                }
+            }
+
+            $cartItem['variant'] = $variant;
+            $validatedCartItems[] = $cartItem;
+        }
+
+        return $validatedCartItems;
+    }
+
+    private function decreaseVariantStock(ItemVariant $variant, int $quantity): void
+    {
+        $variant->update([
+            'available_stock' => max(0, $variant->available_stock - $quantity),
+        ]);
+    }
+
+    private function createRentalBooking(Order $order, array $validated, array $defaults = []): RentalBooking
+    {
+        return RentalBooking::create([
+            'order_id' => $order->id,
+            'booking_code' => $this->generateBookingCode(),
+            'event_type' => $defaults['event_type'] ?? null,
+            'gender' => $defaults['gender'] ?? null,
+            'rental_start' => $validated['rental_start'],
+            'rental_end' => $validated['rental_end'],
+            'event_date' => $validated['event_date'],
+            'makeup_date' => $validated['makeup_date'] ?? null,
+            'booking_status' => 'pending',
+            'notes' => $validated['notes'] ?? null,
+        ]);
+    }
+
+    private function createPayment(Order $order, string $method, float|int $amount, array $itemDetails = []): Payment
+    {
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'payment_code' => $this->generatePaymentCode(),
+            'method' => $method,
+            'gateway_ref' => $method === 'qris' ? 'midtrans_snap' : 'cash',
+            'transaction_ref' => $method === 'qris' ? $order->order_code : null,
+            'amount' => (int) round($amount),
+            'payment_status' => 'pending',
+            'expired_at' => $method === 'qris' ? now()->addDay() : null,
+        ]);
+
+        if ($method === 'qris') {
+            $payment = app(MidtransSnapService::class)
+                ->createQrisTransaction($order->loadMissing('user'), $payment, $itemDetails);
+        }
+
+        return $payment;
     }
 
     private function buildCartSummary(array $cart): array
     {
         $cartItems = [];
+        $cleanCart = [];
         $subtotal = 0;
 
         foreach ($cart as $key => $cartItem) {
-            $item = Item::find($cartItem['item_id'] ?? null);
+            $item = Item::with('category')
+                ->where('is_active', true)
+                ->find($cartItem['item_id'] ?? null);
 
             if (!$item) {
                 continue;
             }
 
             $variant = null;
+            $quantity = max(1, (int) ($cartItem['quantity'] ?? 1));
 
             if (!empty($cartItem['item_variant_id'])) {
-                $variant = ItemVariant::find($cartItem['item_variant_id']);
+                $variant = ItemVariant::where('item_id', $item->id)
+                    ->where('is_active', true)
+                    ->find($cartItem['item_variant_id']);
+
+                if (!$variant || $variant->available_stock <= 0) {
+                    continue;
+                }
+
+                if ($quantity > $variant->available_stock) {
+                    $quantity = $variant->available_stock;
+                }
             }
 
-            $quantity = (int) ($cartItem['quantity'] ?? 1);
-            $price = $variant?->daily_price ?? $item->price;
+            $price = (int) round($variant?->daily_price ?? $item->price);
             $totalPrice = $price * $quantity;
+
             $subtotal += $totalPrice;
+
+            $cleanCart[$key] = [
+                'item_id' => $item->id,
+                'item_variant_id' => $variant?->id,
+                'quantity' => $quantity,
+            ];
 
             $cartItems[] = [
                 'key' => $key,
@@ -276,24 +496,34 @@ class CheckoutController extends Controller
                 'quantity' => $quantity,
                 'price' => $price,
                 'total_price' => $totalPrice,
+                'max_quantity' => $variant?->available_stock,
             ];
         }
 
-        return [$cartItems, $subtotal];
+        return [$cartItems, $subtotal, $cleanCart];
     }
 
     private function findOrCreateCustomer(array $validated): User
     {
-        $customerRoleId = Role::where('role_name', 'customer')->value('id') ?? 2;
+        $customerRoleId = Role::where('role_name', 'customer')->value('id');
 
-        $user = User::where('phone', $validated['phone'])->first();
+        $user = User::query()
+            ->where(function ($query) use ($validated) {
+                $query->where('phone', $validated['phone']);
+
+                if (!empty($validated['email'])) {
+                    $query->orWhere('email', $validated['email']);
+                }
+            })
+            ->first();
 
         if ($user) {
             $user->update([
                 'fullname' => $validated['fullname'],
+                'phone' => $validated['phone'],
                 'email' => $validated['email'] ?? $user->email,
                 'address' => $validated['address'] ?? $user->address,
-                'role_id' => $user->role_id ?? $customerRoleId,
+                'role_id' => $user->role_id ?: $customerRoleId,
             ]);
 
             return $user;
@@ -301,12 +531,138 @@ class CheckoutController extends Controller
 
         return User::create([
             'fullname' => $validated['fullname'],
-            'username' => 'cust_' . strtolower(Str::random(6)),
+            'username' => $this->generateUsername($validated['fullname']),
             'phone' => $validated['phone'],
             'email' => $validated['email'] ?? null,
             'address' => $validated['address'] ?? null,
             'role_id' => $customerRoleId,
-            'password' => bcrypt('password123'),
+            'password' => bcrypt(Str::random(16)),
         ]);
+    }
+
+    private function buildBundleSnapItems(Bundle $bundle, int $total): array
+{
+    return [[
+        'id' => 'BUNDLE-' . $bundle->id,
+        'price' => $total,
+        'quantity' => 1,
+        'name' => Str::limit($bundle->bundle_name, 45, ''),
+    ]];
+}
+
+    private function buildCartSnapItems(array $cartItems): array
+    {
+        return collect($cartItems)
+            ->map(function (array $cartItem) {
+                $variantLabel = $cartItem['variant']
+                    ? ' - ' . trim(($cartItem['variant']->size ?? '') . ' ' . ($cartItem['variant']->color ?? ''))
+                    : '';
+
+                return [
+                    'id' => (string) $cartItem['item']->id . '-' . ($cartItem['variant']->id ?? 'default'),
+                    'price' => (int) round($cartItem['price']),
+                    'quantity' => (int) $cartItem['quantity'],
+                    'name' => Str::limit($cartItem['item']->name . $variantLabel, 45, ''),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function generateOrderCode(): string
+    {
+        do {
+            $code = 'ORD-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+        } while (Order::where('order_code', $code)->exists());
+
+        return $code;
+    }
+
+    private function generateBookingCode(): string
+    {
+        do {
+            $code = 'BOOK-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+        } while (RentalBooking::where('booking_code', $code)->exists());
+
+        return $code;
+    }
+
+    private function generatePaymentCode(): string
+    {
+        do {
+            $code = 'PAY-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+        } while (Payment::where('payment_code', $code)->exists());
+
+        return $code;
+    }
+
+    private function generateUsername(string $fullname): string
+    {
+        $base = Str::slug($fullname, '_') ?: 'customer';
+
+        do {
+            $username = Str::limit($base, 20, '') . '_' . strtolower(Str::random(5));
+        } while (User::where('username', $username)->exists());
+
+        return $username;
+    }
+
+    public function paymentStatus(string $orderCode)
+    {
+        $order = Order::with(['payments'])
+            ->where('order_code', $orderCode)
+            ->firstOrFail();
+
+        $payment = $order->payments->first();
+
+        $paymentStatus = $payment->payment_status ?? 'pending';
+
+        $statusLabel = match($paymentStatus) {
+            'paid' => 'Pembayaran Berhasil',
+            'failed' => 'Pembayaran Gagal',
+            'expired' => 'Pembayaran Kedaluwarsa',
+            'refunded' => 'Pembayaran Direfund',
+            default => 'Menunggu Pembayaran',
+        };
+
+        $statusClass = match($paymentStatus) {
+            'paid' => 'success',
+            'failed', 'expired' => 'danger',
+            'refunded' => 'info',
+            default => 'warning text-dark',
+        };
+
+        return response()
+            ->json([
+                'order_code' => $order->order_code,
+                'order_status' => $order->status,
+                'payment_status' => $paymentStatus,
+                'payment_method' => $payment->method ?? $order->payment_method,
+                'payment_status_label' => $statusLabel,
+                'payment_status_class' => $statusClass,
+                'is_paid' => $paymentStatus === 'paid',
+                'receipt_url' => route('checkout.receipt', $order->order_code),
+                'checked_at' => now()->format('d-m-Y H:i:s'),
+            ])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    }
+
+    public function receipt(string $orderCode)
+    {
+        $order = Order::with([
+            'user',
+            'orderBundles.bundle.bundleItems.item',
+            'orderItems.item.category',
+            'orderItems.orderItemVariants.itemVariant',
+            'payments',
+            'rentalBookings',
+        ])
+            ->where('order_code', $orderCode)
+            ->firstOrFail();
+
+        $payment = $order->payments->first();
+        $booking = $order->rentalBookings->first();
+
+        return view('customer.receipt', compact('order', 'payment', 'booking'));
     }
 }
