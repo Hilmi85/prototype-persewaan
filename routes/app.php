@@ -30,6 +30,8 @@ Route::get('/', [IndexController::class, 'index'])->name('home');
 Route::get('/katalog', [IndexController::class, 'catalog'])->name('catalog');
 Route::get('/katalog/{item}', [IndexController::class, 'showItem'])->name('catalog.show');
 
+Route::get('/aksesoris', [IndexController::class, 'accessories'])->name('accessories.index');
+
 Route::get('/bundle/{bundle}', [IndexController::class, 'showBundle'])->name('bundle.show');
 
 Route::get('/rias', [RiasController::class, 'index'])->name('rias.index');

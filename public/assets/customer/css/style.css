@@ -1,19 +1,165 @@
+/* =========================================================
+   QUIN SALON CUSTOMER CSS - FINAL
+   Theme: Cream Elegant
+   Catatan:
+   - CSS ini hanya untuk fondasi global customer.
+   - Perubahan UI/UX berikutnya cukup lewat class Bootstrap di Blade.
+   - Hindari menambah styling halaman baru di file ini.
+   ========================================================= */
 
-/*** Spinner Start ***/
+
+/* =========================================================
+   1. ROOT THEME
+   ========================================================= */
+:root {
+    --qs-cream: #fffaf5;
+    --qs-cream-2: #fff7ef;
+    --qs-cream-3: #f8efe5;
+    --qs-brown: #8b5e3c;
+    --qs-brown-2: #a47148;
+    --qs-brown-3: #6f4e37;
+    --qs-dark: #3c2a21;
+    --qs-muted: #7a6456;
+    --qs-line: #f1e3d3;
+    --qs-shadow: 0 14px 34px rgba(111, 78, 55, 0.09);
+    --qs-shadow-lg: 0 24px 70px rgba(60, 42, 33, 0.12);
+}
+
+
+/* =========================================================
+   2. BASE
+   ========================================================= */
+body {
+    background: var(--qs-cream);
+    color: var(--qs-dark);
+    font-family: "Open Sans", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.navbar-brand .brand-title {
+    font-family: "Playfair Display", serif;
+}
+
+.min-vh-content {
+    min-height: 70vh;
+}
+
+.lh-comfy {
+    line-height: 1.85;
+}
+
+.max-w-760 {
+    max-width: 760px;
+}
+
+.max-w-780 {
+    max-width: 780px;
+}
+
+
+/* =========================================================
+   3. BOOTSTRAP COMPATIBILITY HELPERS
+   ========================================================= */
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.object-fit-contain {
+    object-fit: contain;
+}
+
+.ratio-3x4 {
+    --bs-aspect-ratio: 133.333333%;
+}
+
+.ratio-2x3 {
+    --bs-aspect-ratio: 150%;
+}
+
+
+/* =========================================================
+   4. COLOR HELPERS
+   ========================================================= */
+.text-brand {
+    color: var(--qs-brown) !important;
+}
+
+.text-brand-dark {
+    color: var(--qs-dark) !important;
+}
+
+.text-soft {
+    color: var(--qs-muted) !important;
+}
+
+.text-cream {
+    color: #f3d2a2 !important;
+}
+
+.text-white-soft {
+    color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.text-white-muted {
+    color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.bg-cream {
+    background-color: var(--qs-cream) !important;
+}
+
+.bg-cream-soft {
+    background-color: var(--qs-cream-2) !important;
+}
+
+.bg-brand-gradient {
+    background: linear-gradient(135deg, var(--qs-brown), var(--qs-brown-2)) !important;
+}
+
+.border-cream {
+    border: 1px solid var(--qs-line) !important;
+}
+
+.shadow-brand {
+    box-shadow: var(--qs-shadow) !important;
+}
+
+.section-cream {
+    background: linear-gradient(
+        180deg,
+        var(--qs-cream) 0%,
+        var(--qs-cream-2) 48%,
+        var(--qs-cream) 100%
+    );
+}
+
+
+/* =========================================================
+   5. SPINNER & BACK TO TOP
+   ========================================================= */
 #spinner {
     opacity: 0;
     visibility: hidden;
-    transition: opacity .8s ease-out, visibility 0s linear .5s;
+    transition:
+        opacity 0.8s ease-out,
+        visibility 0s linear 0.5s;
     z-index: 99999;
- }
+}
 
- #spinner.show {
-     transition: opacity .8s ease-out, visibility 0s linear .0s;
-     visibility: visible;
-     opacity: 1;
- }
+#spinner.show {
+    visibility: visible;
+    opacity: 1;
+    transition:
+        opacity 0.8s ease-out,
+        visibility 0s linear 0s;
+}
 
- .back-to-top {
+.back-to-top {
     position: fixed;
     right: 30px;
     bottom: 30px;
@@ -22,16 +168,24 @@
     height: 45px;
     align-items: center;
     justify-content: center;
-    transition: 0.5s;
+    transition: 0.3s ease;
     z-index: 99;
 }
-/*** Spinner End ***/
 
 
-/*** Button Start ***/
+/* =========================================================
+   6. BUTTON HELPERS
+   Gunakan Bootstrap untuk UI baru.
+   Class ini dipertahankan agar halaman lama tetap aman.
+   ========================================================= */
 .btn {
     font-weight: 600;
-    transition: .5s;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
 }
 
 .btn-square {
@@ -65,83 +219,207 @@
     font-weight: normal;
 }
 
-.btn.border-secondary {
-    transition: 0.5s;
+.btn-brand,
+.btn-brown {
+    background: linear-gradient(135deg, var(--qs-brown), var(--qs-brown-2)) !important;
+    border: 0 !important;
+    color: #fff !important;
+    box-shadow: 0 12px 26px rgba(139, 94, 60, 0.18);
 }
 
-.btn.border-secondary:hover {
-    background: var(--bs-secondary) !important;
-    color: var(--bs-white) !important;
+.btn-brand:hover,
+.btn-brown:hover {
+    color: #fff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgba(139, 94, 60, 0.24);
 }
 
-/*** Topbar Start ***/
-.fixed-top {
-    transition: 0.5s;
-    background: var(--bs-white);
-    border: 0;
+.btn-brand-outline {
+    background: #fff !important;
+    border: 1px solid #d8b892 !important;
+    color: var(--qs-brown) !important;
 }
 
-.topbar {
-    padding: 20px;
-    border-radius: 230px 100px;
+.btn-brand-outline:hover {
+    background: var(--qs-cream-2) !important;
+    color: var(--qs-brown) !important;
+    transform: translateY(-2px);
 }
 
-.topbar .top-info {
-    font-size: 15px;
-    line-height: 0;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
+.btn-cream {
+    background: #fff !important;
+    color: var(--qs-brown) !important;
+    border: 0 !important;
+    font-weight: 700;
 }
 
-.topbar .top-link {
-    font-size: 15px;
-    line-height: 0;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
+.btn-ghost-light {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    backdrop-filter: blur(6px);
 }
 
-.topbar .top-link a {
-    letter-spacing: 1px;
+.btn-ghost-light:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
 }
 
-.topbar .top-link a small:hover {
-    color: var(--bs-secondary) !important;
-    transition: 0.5s;
+.btn-icon-soft {
+    width: 42px;
+    height: 42px;
+    background: #fff !important;
+    color: var(--qs-brown) !important;
+    border: 1px solid rgba(216, 184, 146, 0.45) !important;
+    box-shadow: 0 4px 12px rgba(139, 94, 60, 0.08);
 }
 
-.topbar .top-link a small:hover i {
-    color: var(--bs-primary) !important;
+.btn-cart-pill {
+    min-width: 56px;
+    background: #fff !important;
+    color: var(--qs-brown) !important;
+    border: 1px solid rgba(216, 184, 146, 0.45) !important;
+    box-shadow: 0 6px 16px rgba(139, 94, 60, 0.08);
 }
-/*** Topbar End ***/
 
-/*** Navbar Start ***/
+
+/* =========================================================
+   7. BADGE HELPERS
+   ========================================================= */
+.badge-brand {
+    background: var(--qs-brown) !important;
+    color: #fff !important;
+}
+
+.badge-soft-brand {
+    background: var(--qs-cream-2) !important;
+    color: var(--qs-brown) !important;
+    border: 1px solid #f0dfcf;
+}
+
+.badge-glass {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #f5d2a6 !important;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.badge-notification {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 0.65rem;
+    line-height: 18px;
+}
+
+
+/* =========================================================
+   8. FORM & TABLE
+   ========================================================= */
+.form-control,
+.form-select {
+    border-color: #ead7c0;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #c79358;
+    box-shadow: 0 0 0 0.2rem rgba(139, 94, 60, 0.12);
+}
+
+.table-soft thead,
+.table thead.table-cream {
+    background: var(--qs-cream-2);
+}
+
+
+/* =========================================================
+   9. NAVBAR CUSTOMER
+   ========================================================= */
+.navbar {
+    min-height: 82px;
+    height: auto;
+}
+
 .navbar .navbar-nav .nav-link {
     padding: 10px 15px;
     font-size: 16px;
-    transition: .5s;
-}
-
-.navbar {
-    height: 100px;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
-}
-
-.navbar .navbar-nav .nav-link:hover,
-.navbar .navbar-nav .nav-link.active,
-.fixed-top.bg-white .navbar .navbar-nav .nav-link:hover,
-.fixed-top.bg-white .navbar .navbar-nav .nav-link.active {
-    color: var(--bs-primary);
+    transition: 0.25s ease;
 }
 
 .navbar .dropdown-toggle::after {
+    margin-left: 8px;
     border: none;
     content: "\f107";
     font-family: "Font Awesome 5 Free";
     font-weight: 700;
     vertical-align: middle;
-    margin-left: 8px;
+}
+
+.brand-navbar {
+    z-index: 1030;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 250, 245, 0.97),
+        rgba(255, 248, 242, 0.94)
+    );
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(216, 184, 146, 0.22);
+    box-shadow: 0 8px 24px rgba(111, 78, 55, 0.08);
+}
+
+.brand-navbar .navbar {
+    min-height: 82px;
+    height: auto;
+}
+
+.brand-logo {
+    max-width: 72%;
+}
+
+.brand-title {
+    color: var(--qs-brown);
+    font-size: clamp(1.35rem, 2vw, 1.95rem);
+    line-height: 1.05;
+    letter-spacing: 0.3px;
+}
+
+.brand-subtitle {
+    color: #c8a97e;
+    letter-spacing: 1px;
+    font-size: clamp(0.68rem, 1.5vw, 0.82rem);
+}
+
+.navbar .navbar-nav .nav-link.nav-brand-link {
+    color: var(--qs-brown-3);
+    transition: 0.25s ease;
+}
+
+.navbar .navbar-nav .nav-link.nav-brand-link:hover,
+.navbar .navbar-nav .nav-link.nav-brand-link.active {
+    color: var(--qs-brown) !important;
+    background: linear-gradient(
+        90deg,
+        rgba(216, 184, 146, 0.16),
+        rgba(216, 184, 146, 0.06)
+    );
+}
+
+.mobile-menu-card {
+    background: linear-gradient(180deg, #fffdfb 0%, var(--qs-cream-2) 100%);
+    border: 1px solid rgba(216, 184, 146, 0.28);
+    box-shadow: 0 14px 30px rgba(111, 78, 55, 0.1);
+}
+
+.mobile-nav-stack {
+    row-gap: 0.55rem;
+}
+
+.mobile-menu-divider {
+    border-top: 1px dashed rgba(216, 184, 146, 0.45);
+}
+
+#searchModal .modal-content {
+    background: rgba(255, 255, 255, 0.8);
 }
 
 @media (min-width: 1200px) {
@@ -149,362 +427,756 @@
         display: block;
         visibility: hidden;
         top: 100%;
-        transform: rotateX(-75deg);
-        transform-origin: 0% 0%;
-        border: 0;
-        transition: .5s;
         opacity: 0;
+        border: 0;
+        transform: translateY(10px);
+        transition: 0.25s ease;
+    }
+
+    .navbar .nav-item:hover .dropdown-menu {
+        visibility: visible;
+        opacity: 1;
+        background: var(--bs-white) !important;
+        border-radius: 0.75rem !important;
+        transform: translateY(0);
     }
 }
 
-.dropdown .dropdown-menu a:hover {
-    background: var(--bs-secondary);
-    color: var(--bs-primary);
-}
-
-.navbar .nav-item:hover .dropdown-menu {
-    transform: rotateX(0deg);
-    visibility: visible;
+.dropdown .dropdown-menu a:hover,
+.dropdown .dropdown-menu a:focus {
     background: var(--bs-light) !important;
-    border-radius: 10px !important;
-    transition: .5s;
-    opacity: 1;
+    color: var(--bs-dark) !important;
 }
 
-#searchModal .modal-content {
-    background: rgba(255, 255, 255, .8);
+.dropdown .dropdown-menu a:hover i,
+.dropdown .dropdown-menu a:focus i {
+    color: var(--bs-warning) !important;
 }
-/*** Navbar End ***/
 
-/*** Hero Header ***/
-.hero-header {
-    background: linear-gradient(rgba(248, 223, 173, 0.1), rgba(248, 223, 173, 0.1)), url(../img/hero-img.jpg);
+
+/* =========================================================
+   10. HERO / PAGE HEADER
+   Dipakai untuk header halaman customer lama.
+   Untuk desain baru, lebih baik gunakan Bootstrap di Blade.
+   ========================================================= */
+.page-header,
+.customer-hero,
+.customer-hero-home {
+    position: relative;
+    background:
+        linear-gradient(rgba(60, 42, 33, 0.66), rgba(60, 42, 33, 0.72)),
+        url("/img_item_upload/indo.jpg");
     background-position: center center;
     background-repeat: no-repeat;
     background-size: cover;
 }
 
+.customer-hero,
+.customer-hero-home {
+    margin-top: -55px !important;
+}
+
+.customer-hero {
+    padding-top: 170px !important;
+}
+
+.customer-hero-home {
+    padding-top: 150px !important;
+    padding-bottom: 78px !important;
+}
+
+.customer-hero-glow {
+    background:
+        radial-gradient(
+            circle at top left,
+            rgba(255, 255, 255, 0.1),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at bottom right,
+            rgba(245, 210, 166, 0.12),
+            transparent 28%
+        );
+    pointer-events: none;
+}
+
+.hero-title {
+    font-size: clamp(2.2rem, 5vw, 4.2rem);
+    line-height: 1.18;
+    letter-spacing: 0.2px;
+}
+
+.hero-copy {
+    max-width: 760px;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    opacity: 0.94;
+}
+
+.section-eyebrow {
+    color: #b88352;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.section-title {
+    color: var(--qs-dark);
+    font-size: clamp(1.7rem, 3vw, 2.5rem);
+}
+
+
+/* =========================================================
+   11. CAROUSEL SAFETY
+   Jangan styling link carousel secara global.
+   Ini mencegah tombol carousel mleyot/ketarik ke tengah.
+   ========================================================= */
 .carousel-item {
     position: relative;
 }
 
 .carousel-item a {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 25px;
-    background: linear-gradient(rgba(255, 181, 36, 0.7), rgba(255, 181, 36, 0.7));
+    position: static;
+    transform: none;
+    font-size: inherit;
+    background: transparent;
 }
 
-.carousel-control-next,
-.carousel-control-prev {
-    width: 48px;
-    height: 48px;
-    border-radius: 48px;
-    border: 1px solid var(--bs-white);
-    background: var(--bs-primary);
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+
+/* =========================================================
+   12. GLOBAL CARD HELPERS
+   Dipertahankan untuk halaman lama yang masih memakai class ini.
+   Untuk UI baru, gunakan Bootstrap card utilities.
+   ========================================================= */
+.content-card,
+.filter-card,
+.summary-card,
+.soft-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--qs-line) !important;
+    box-shadow: var(--qs-shadow) !important;
 }
 
-.carousel-control-next {
-    margin-right: 20px;
+.soft-card-cream,
+.criteria-box,
+.bundle-item-box {
+    background: var(--qs-cream-2);
+    border: 1px solid var(--qs-line);
 }
 
-.carousel-control-prev {
-    margin-left: 20px;
+.sticky-summary {
+    top: 105px;
 }
 
-.page-header {
-    position: relative;
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)), url('https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: cover;
+
+/* =========================================================
+   13. CATALOG LEGACY HELPERS
+   Dipertahankan agar halaman lama tidak rusak.
+   Untuk perubahan UI katalog baru, gunakan Bootstrap di Blade.
+   ========================================================= */
+.catalog-toolbar-card {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.94),
+        rgba(255, 247, 239, 0.94)
+    );
+    border: 1px solid var(--qs-line);
+    box-shadow: var(--qs-shadow);
 }
 
-@media (min-width: 992px) {
-    .hero-header,
-    .page-header {
-        margin-top: 152px !important;
-    }
+.catalog-section-block + .catalog-section-block {
+    margin-top: 4.75rem;
 }
 
-@media (max-width: 992px) {
-    .hero-header,
-    .page-header {
-        margin-top: 97px !important;
-    }
-}
-/*** Hero Header end ***/
-
-
-/*** featurs Start ***/
-.featurs .featurs-item .featurs-icon {
-    position: relative;
-    width: 120px;
-    height: 120px;
+.catalog-section-header {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid var(--qs-line);
+    box-shadow: 0 12px 28px rgba(111, 78, 55, 0.06);
 }
 
-.featurs .featurs-item .featurs-icon::after {
-    content: "";
-    width: 35px;
-    height: 35px;
-    background: var(--bs-secondary);
-    position: absolute;
-    bottom: -10px;
-    transform: translate(-50%);
-    transform: rotate(45deg);
-    background: var(--bs-secondary);
-    
-}
-/*** featurs End ***/
-
-
-/*** service Start ***/
-.service .service-item .service-content {
-    position: relative;
-    width: 250px; 
-    height: 130px; 
-    top: -50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%);
+.catalog-section-icon {
+    width: 54px;
+    height: 54px;
+    background: linear-gradient(135deg, var(--qs-brown), var(--qs-brown-2));
+    color: #fff;
 }
 
-/*** service End ***/
-
-
-/*** Fruits Start ***/
-.fruite .tab-class .nav-item a.active {
-    background: var(--bs-secondary) !important;
+.catalog-section-count {
+    background: var(--qs-cream-2);
+    color: var(--qs-brown);
+    border: 1px solid #ecd7bf;
 }
 
-.fruite .tab-class .nav-item a.active span {
-    color: var(--bs-white) !important; 
+.catalog-card {
+    background: #fff;
+    border: 1px solid var(--qs-line) !important;
+    box-shadow: 0 12px 28px rgba(111, 78, 55, 0.07) !important;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
 }
 
-.fruite .fruite-categorie .fruite-name {
-    line-height: 40px;
+.catalog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 42px rgba(111, 78, 55, 0.12) !important;
 }
 
-.fruite .fruite-categorie .fruite-name a {
-    transition: 0.5s;
+.catalog-card-compact {
+    border-radius: 24px !important;
 }
 
-.fruite .fruite-categorie .fruite-name a:hover {
-    color: var(--bs-secondary);
-}
-
-.fruite .fruite-item {
-    height: 100%;
-    transition: 0.5s;
-}
-.fruite .fruite-item:hover {
-    box-shadow: 0 0 55px rgba(0, 0, 0, 0.4);
-}
-
-.fruite .fruite-item .fruite-img {
-    overflow: hidden;
-    transition: 0.5s;
-    border-radius: 10px 10px 0 0;
-    width: 100%;
-    height: 20rem;
-}
-
-.fruite .fruite-item .fruite-img img {
-    transition: 0.5s;
-    width: 100%;
-    height: 100%;
+.catalog-card-img {
+    height: 205px;
     object-fit: cover;
 }
 
-.fruite .fruite-item .fruite-img img:hover {
-    transform: scale(1.3);
+.catalog-card-media {
+    height: 168px;
+    background: var(--qs-cream-3);
 }
 
-.text-limited {
+.catalog-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+}
+
+.catalog-card:hover .catalog-card-media img {
+    transform: scale(1.045);
+}
+
+.catalog-card-body {
+    padding: 1.15rem 1.2rem 1.25rem;
+}
+
+.catalog-type-pill {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    max-width: calc(100% - 24px);
+    background: rgba(139, 94, 60, 0.95) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    box-shadow: 0 10px 22px rgba(60, 42, 33, 0.18);
+    line-height: 1.2;
+    white-space: normal;
+    text-align: left;
+}
+
+.catalog-meta-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.8rem;
+}
+
+.catalog-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 0.35rem 0.62rem;
+    border-radius: 999px;
+    background: var(--qs-cream-2);
+    color: var(--qs-brown-3);
+    border: 1px solid #ead7c0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.catalog-chip-success {
+    background: #e8f7ee;
+    color: #157347;
+    border-color: #bde5ca;
+}
+
+.catalog-chip-warning {
+    background: #fff4d7;
+    color: #8a5a00;
+    border-color: #f3db9a;
+}
+
+.catalog-chip-primary {
+    background: #e8f1ff;
+    color: #1e5ca8;
+    border-color: #cfe0fb;
+}
+
+.catalog-title {
+    min-height: 50px;
+    color: var(--qs-dark);
+    font-size: 1.17rem;
+    line-height: 1.35;
+}
+
+.catalog-title-compact {
+    min-height: 2.68em;
+    color: var(--qs-dark);
+    font-size: 1rem;
+    line-height: 1.34;
+    word-break: break-word;
     display: -webkit-box;
-    -webkit-line-clamp: 1; /* Batasi teks hingga 2 baris */
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis; /* Tambahkan ellipsis (...) jika teks terpotong */
-}
-/*** Fruits End ***/
-
-
-/*** vesitable Start ***/
-.vesitable .vesitable-item {
-    height: 100%;
-    transition: 0.5s;
 }
 
-.vesitable .vesitable-item:hover {
-    box-shadow: 0 0 55px rgba(0, 0, 0, 0.4);
+.catalog-desc {
+    min-height: 56px;
+    line-height: 1.65;
+    font-size: 0.95rem;
 }
 
-.vesitable .vesitable-item .vesitable-img {
+.catalog-desc-compact {
+    min-height: 4.15em;
+    color: var(--qs-muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    transition: 0.5s;
-    border-radius: 10px 10px 0 0;
 }
 
-.vesitable .vesitable-item .vesitable-img img {
-    transition: 0.5s;
+.catalog-price-box {
+    background: linear-gradient(135deg, var(--qs-cream-2), #fff);
+    border: 1px solid var(--qs-line);
 }
 
-.vesitable .vesitable-item .vesitable-img img:hover {
-    transform: scale(1.2);
+.catalog-actions .btn {
+    min-height: 40px;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+    font-size: 0.88rem;
 }
 
-.vesitable .owl-stage {
-    margin: 50px 0;
-    position: relative;
+.catalog-detail-img {
+    max-height: 520px;
+    object-fit: cover;
 }
 
-.vesitable .owl-nav .owl-prev {
-    position: absolute;
-    top: -8px;
-    right: 0;
-    color: var(--bs-primary);
-    padding: 5px 25px;
-    border: 1px solid var(--bs-secondary);
-    border-radius: 20px;
-    transition: 0.5s;
-
+.price-text {
+    color: var(--qs-brown);
+    font-size: 1.08rem;
 }
 
-.vesitable .owl-nav .owl-prev:hover {
-    background: var(--bs-secondary);
-    color: var(--bs-white);
+.empty-icon {
+    color: #b88352;
+    font-size: 52px;
 }
 
-.vesitable .owl-nav .owl-next {
-    position: absolute;
-    top: -8px;
-    right: 88px;
-    color: var(--bs-primary);
-    padding: 5px 25px;
-    border: 1px solid var(--bs-secondary);
-    border-radius: 20px;
-    transition: 0.5s;
+.catalog-empty-state {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px dashed #dfc2a2;
 }
 
-.vesitable .owl-nav .owl-next:hover {
-    background: var(--bs-secondary);
-    color: var(--bs-white);
-}
-/*** vesitable End ***/
 
-
-/*** Banner Section Start ***/
-.banner .banner-btn:hover {
-    background: var(--bs-primary);
-}
-/*** Banner Section End ***/
-
-
-/*** Facts Start ***/
-.counter {
-    height: 100%;
-    text-align: center;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+/* =========================================================
+   14. PRODUCT DETAIL LEGACY HELPERS
+   ========================================================= */
+.detail-hero-card {
+    background: #fff;
+    border: 1px solid var(--qs-line);
+    box-shadow: var(--qs-shadow-lg);
 }
 
-.counter i {
-    font-size: 60px;
-    margin-bottom: 25px;
+.detail-image-frame {
+    background: linear-gradient(135deg, var(--qs-cream-2), #fff);
+    border: 1px solid var(--qs-line);
 }
 
-.counter h4 {
-    color: var(--bs-primary);
-    letter-spacing: 1px;
-    text-transform: uppercase;
+.detail-image-frame img {
+    width: 100%;
+    height: 460px;
+    max-height: 460px;
+    object-fit: cover;
 }
 
-.counter h1 {
+.detail-summary-card,
+.detail-order-card,
+.detail-variant-card {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--qs-line);
+    box-shadow: var(--qs-shadow);
+}
+
+.detail-price-box {
+    background: linear-gradient(135deg, var(--qs-brown), var(--qs-brown-2));
+    color: #fff;
+}
+
+.detail-price-box small {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.detail-info-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, var(--qs-brown), var(--qs-brown-2));
+    color: #fff;
+    box-shadow: 0 12px 26px rgba(139, 94, 60, 0.18);
+}
+
+.detail-meta-row {
+    padding-bottom: 0.85rem;
+    margin-bottom: 0.85rem;
+    border-bottom: 1px solid var(--qs-line);
+}
+
+.detail-meta-row:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: 0;
+}
+
+.variant-table th {
+    color: var(--qs-brown-3);
+    font-size: 0.85rem;
+}
+
+.variant-table td {
+    font-size: 0.92rem;
+}
+
+
+/* =========================================================
+   15. RECOMMENDATION RESULT LEGACY HELPERS
+   ========================================================= */
+.result-page {
+    min-height: 100vh;
+    padding-top: 7rem;
+    padding-bottom: 4rem;
+    background: linear-gradient(
+        135deg,
+        var(--qs-cream) 0%,
+        var(--qs-cream-3) 100%
+    );
+}
+
+.result-card {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(139, 94, 60, 0.16);
+    border-radius: 28px;
+    box-shadow: var(--qs-shadow-lg);
+}
+
+.result-header {
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--qs-brown), #c79358);
+    color: #fff;
+}
+
+.criteria-box,
+.bundle-item-box {
+    padding: 1rem;
+    border-radius: 18px;
+}
+
+.bundle-item-box {
+    transition: 0.25s ease;
+}
+
+.bundle-item-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(139, 94, 60, 0.12);
+}
+
+.rule-glass-box {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.rule-divider {
+    border-color: rgba(255, 255, 255, 0.25);
+    opacity: 1;
+}
+
+.rule-note {
+    background-color: #fdf2e7;
+    border: 1px dashed #e6c7a8;
+    color: #7a4d2c;
+}
+
+
+/* =========================================================
+   16. CART / CHECKOUT / PAYMENT
+   ========================================================= */
+.snap-box {
+    min-height: 560px;
+    background: var(--qs-cream);
+    border: 1px solid var(--qs-line);
+}
+
+.table-label-wide {
+    width: 220px;
+}
+
+.cart-qty-col {
+    width: 190px;
+}
+
+.cart-action-col {
+    width: 110px;
+}
+
+
+/* =========================================================
+   17. RECEIPT
+   ========================================================= */
+.receipt-body {
+    background: #f5f5f5;
+    color: #222;
+    padding: 24px;
+}
+
+.receipt-wrapper {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px;
+    background: #fff;
+    border: 1px solid #ddd;
+}
+
+.receipt-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    border-bottom: 3px solid var(--qs-brown);
+}
+
+.receipt-brand-title {
+    margin: 0;
+    color: var(--qs-brown);
+    font-size: 28px;
+}
+
+.receipt-brand-subtitle {
+    margin: 6px 0 0;
+    color: #666;
+}
+
+.receipt-status {
+    text-align: right;
+}
+
+.receipt-status-date {
     margin-bottom: 0;
 }
-/*** Facts End ***/
 
-
-/*** testimonial Start ***/
-.testimonial .owl-nav .owl-prev {
-    position: absolute;
-    top: -58px;
-    right: 0;
-    color: var(--bs-primary);
-    padding: 5px 25px;
-    border: 1px solid var(--bs-secondary);
-    border-radius: 20px;
-    transition: 0.5s;
-}
-
-.testimonial .owl-nav .owl-prev:hover {
-    background: var(--bs-secondary);
-    color: var(--bs-white);
-}
-
-.testimonial .owl-nav .owl-next {
-    position: absolute;
-    top: -58px;
-    right: 88px;
-    color: var(--bs-primary);
-    padding: 5px 25px;
-    border: 1px solid var(--bs-secondary);
-    border-radius: 20px;
-    transition: 0.5s;
-}
-
-.testimonial .owl-nav .owl-next:hover {
-    background: var(--bs-secondary);
-    color: var(--bs-white);
-}
-/*** testimonial End ***/
-
-
-/*** Single Page Start ***/
-.pagination {
+.receipt-status-badge {
     display: inline-block;
-}
-  
-.pagination a {
-    color: var(--bs-dark);
-    padding: 10px 16px;
-    text-decoration: none;
-    transition: 0.5s;
-    border: 1px solid var(--bs-secondary);
-    margin: 0 4px;
-}
-  
-.pagination a.active {
-    background-color: var(--bs-primary);
-    color: var(--bs-light);
-    border: 1px solid var(--bs-secondary);
-}
-  
-.pagination a:hover:not(.active) {background-color: var(--bs-primary)}
-
-.nav.nav-tabs .nav-link.active {
-    border-bottom: 2px solid var(--bs-secondary) !important;
-}
-/*** Single Page End ***/
-
-
-/*** Footer Start ***/
-.footer .footer-item .btn-link {
-    line-height: 35px;
-    color: rgba(255, 255, 255, .5);
-    transition: 0.5s;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
 }
 
-.footer .footer-item .btn-link:hover {
-    color: var(--bs-secondary) !important;
+.status-paid {
+    background: #d1e7dd;
+    color: #0f5132;
 }
 
-.footer .footer-item p.mb-4 {
-    line-height: 35px;
+.status-pending {
+    background: #fff3cd;
+    color: #664d03;
 }
-/*** Footer End ***/
 
+.status-failed {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.receipt-section {
+    margin-bottom: 24px;
+}
+
+.receipt-section-title {
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    color: var(--qs-brown);
+    border-bottom: 1px solid #eee;
+}
+
+.receipt-info td {
+    padding: 6px 0;
+    vertical-align: top;
+}
+
+.receipt-info td:first-child {
+    width: 190px;
+    color: #666;
+}
+
+.receipt-items th,
+.receipt-items td {
+    padding: 10px;
+    text-align: left;
+    vertical-align: top;
+    border: 1px solid #ddd;
+}
+
+.receipt-items th {
+    background: var(--qs-cream-2);
+}
+
+.receipt-summary {
+    width: 320px;
+    margin-left: auto;
+}
+
+.receipt-summary td {
+    padding: 8px 0;
+}
+
+.receipt-summary-total td {
+    border-top: 2px solid var(--qs-brown);
+    color: var(--qs-brown);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.receipt-actions {
+    max-width: 820px;
+    margin: 18px auto 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.receipt-footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px dashed #ccc;
+    color: #666;
+    font-size: 13px;
+    text-align: center;
+}
+
+
+/* =========================================================
+   18. FOOTER CUSTOMER
+   ========================================================= */
+.footer-brand {
+    background: linear-gradient(135deg, #4b3228, #2f1f19);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.footer-divider {
+    border-bottom: 1px solid rgba(216, 184, 146, 0.45);
+}
+
+.footer-title {
+    color: #f3d2a2;
+}
+
+.footer-subtitle {
+    color: #e7c79f;
+}
+
+.footer-heading {
+    color: #fff;
+}
+
+.footer-link {
+    color: rgba(255, 255, 255, 0.75);
+    transition: 0.25s ease;
+}
+
+.footer-link:hover {
+    color: #f3d2a2;
+}
+
+.footer-social {
+    border: 1px solid #d8b892 !important;
+    color: #f3d2a2 !important;
+}
+
+.footer-social:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff !important;
+}
+
+.footer-bottom {
+    background-color: #241712;
+}
+
+.footer-bottom-text {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-bottom-muted {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+
+/* =========================================================
+   19. RESPONSIVE
+   ========================================================= */
+@media (min-width: 1200px) {
+    .catalog-grid > [class*="col-"] {
+        flex: 0 0 auto;
+        width: 25%;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .customer-hero-home {
+        padding-top: 138px !important;
+        padding-bottom: 64px !important;
+    }
+
+    .detail-image-frame img {
+        height: 360px;
+        max-height: 360px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .catalog-card-img {
+        height: 185px;
+    }
+
+    .catalog-card-media {
+        height: 205px;
+    }
+
+    .catalog-title,
+    .catalog-desc,
+    .catalog-title-compact,
+    .catalog-desc-compact {
+        min-height: auto;
+    }
+
+    .catalog-actions .btn {
+        font-size: 0.84rem;
+    }
+
+    .detail-image-frame img {
+        height: 300px;
+        max-height: 300px;
+    }
+}
+
+
+/* =========================================================
+   20. PRINT
+   ========================================================= */
+@media print {
+    .receipt-body {
+        background: #fff;
+        padding: 0;
+    }
+
+    .receipt-wrapper {
+        max-width: 100%;
+        padding: 0;
+        border: none;
+    }
+
+    .receipt-actions {
+        display: none;
+    }
+}

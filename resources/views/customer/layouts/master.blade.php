@@ -7,13 +7,13 @@
 
     @include('customer.layouts.__navbar')
 
-    <main style="min-height: 70vh;">
+    <main class="min-vh-content">
         @yield('content')
     </main>
 
     @include('customer.layouts.__footer')
 
-    <a href="#" class="btn btn-primary border-3 border-primary rounded-circle back-to-top">
+    <a href="#" class="btn btn-brand rounded-circle back-to-top">
         <i class="fa fa-arrow-up"></i>
     </a>
 

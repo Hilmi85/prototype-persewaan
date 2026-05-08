@@ -14,8 +14,9 @@ class IndexController extends Controller
     {
         $featuredItems = Item::with(['category', 'itemVariants'])
             ->where('is_active', true)
+            ->where('item_type', 'baju_adat')
             ->latest()
-            ->take(3)
+            ->take(8)
             ->get();
 
         $featuredBundles = Bundle::with(['bundleItems.item.category', 'bundleItems.item.itemVariants'])
@@ -31,10 +32,16 @@ class IndexController extends Controller
 
     public function catalog(Request $request)
     {
-        $categories = Category::orderBy('cat_name')->get();
+        $categories = Category::whereHas('items', function ($query) {
+                $query->where('is_active', true)
+                    ->where('item_type', 'baju_adat');
+            })
+            ->orderBy('cat_name')
+            ->get();
 
         $items = Item::with(['category', 'itemVariants'])
             ->where('is_active', true)
+            ->where('item_type', 'baju_adat')
             ->when($request->filled('keyword'), function ($query) use ($request) {
                 $keyword = $request->keyword;
 
@@ -47,12 +54,6 @@ class IndexController extends Controller
             ->when($request->filled('category_id'), function ($query) use ($request) {
                 $query->where('category_id', $request->category_id);
             })
-            ->when($request->filled('item_type'), function ($query) use ($request) {
-                $query->where('item_type', $request->item_type);
-            })
-            ->when($request->filled('adat_category'), function ($query) use ($request) {
-                $query->where('adat_category', $request->adat_category);
-            })
             ->when($request->filled('gender'), function ($query) use ($request) {
                 $query->where(function ($subQuery) use ($request) {
                     $subQuery->where('gender', $request->gender)
@@ -61,10 +62,55 @@ class IndexController extends Controller
                 });
             })
             ->latest()
-            ->paginate(12)
-            ->withQueryString();
+            ->get();
 
-        return view('customer.catalog', compact('items', 'categories'));
+        $catalogGroups = $items
+            ->groupBy(function ($item) {
+                return $item->category->cat_name
+                    ?? ($item->adat_category ? 'Baju Adat ' . $item->adat_category : 'Baju Adat Lainnya');
+            })
+            ->map(function ($groupItems, $groupName) {
+                return [
+                    'label' => $groupName,
+                    'description' => 'Pilihan koleksi ' . strtolower($groupName) . ' yang tersedia di Quin Salon.',
+                    'items' => $groupItems->values(),
+                ];
+            })
+            ->values();
+
+        $totalItems = $items->count();
+
+        return view('customer.catalog', compact('categories', 'catalogGroups', 'totalItems'));
+    }
+
+    public function accessories(Request $request)
+    {
+        $categories = Category::whereHas('items', function ($query) {
+                $query->where('is_active', true)
+                    ->where('item_type', 'aksesoris');
+            })
+            ->orderBy('cat_name')
+            ->get();
+
+        $items = Item::with(['category', 'itemVariants'])
+            ->where('is_active', true)
+            ->where('item_type', 'aksesoris')
+            ->when($request->filled('keyword'), function ($query) use ($request) {
+                $keyword = $request->keyword;
+
+                $query->where(function ($subQuery) use ($keyword) {
+                    $subQuery->where('name', 'like', "%{$keyword}%")
+                        ->orWhere('description', 'like', "%{$keyword}%")
+                        ->orWhere('adat_category', 'like', "%{$keyword}%");
+                });
+            })
+            ->when($request->filled('category_id'), function ($query) use ($request) {
+                $query->where('category_id', $request->category_id);
+            })
+            ->latest()
+            ->get();
+
+        return view('customer.aksesoris', compact('items', 'categories'));
     }
 
     public function showItem(Item $item)

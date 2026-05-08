@@ -1,135 +1,174 @@
-<div class="container-fluid fixed-top px-0"
-     style="z-index: 1030; background: linear-gradient(180deg, rgba(255,250,245,0.97) 0%, rgba(255,248,242,0.94) 100%); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(216,184,146,0.22); box-shadow: 0 8px 24px rgba(111,78,55,0.08);">
+<div class="container-fluid fixed-top px-0 brand-navbar">
     <div class="container px-3 px-md-0">
-        <nav class="navbar navbar-expand-xl py-2 py-md-3" style="min-height: 82px;">
-            <a href="{{ route('home') }}"
-               class="navbar-brand d-flex flex-column justify-content-center text-decoration-none me-2"
-               style="max-width: 72%;">
-                <h2 class="mb-0 fw-bold"
-                    style="color: #8b5e3c; font-size: clamp(1.35rem, 2vw, 1.95rem); line-height: 1.05; letter-spacing: 0.3px;">
-                    Quin Salon
-                </h2>
-                <small style="color: #c8a97e; letter-spacing: 1px; font-size: clamp(0.68rem, 1.5vw, 0.82rem);">
-                    Baju Adat & Jasa Rias
-                </small>
+        <nav class="navbar navbar-expand-xl py-2 py-md-3">
+            <a href="{{ route('home') }}" class="navbar-brand brand-logo d-flex flex-column justify-content-center text-decoration-none me-2">
+                <h2 class="brand-title mb-0 fw-bold">Quin Salon</h2>
+                <small class="brand-subtitle">Baju Adat & Jasa Rias</small>
             </a>
 
             @php
                 $cartCount = collect(session('cart', []))->sum('quantity');
+
+                $isCatalogMenuActive =
+                    request()->routeIs('catalog') ||
+                    request()->routeIs('catalog.show') ||
+                    request()->routeIs('accessories.index') ||
+                    request()->routeIs('rias.index');
             @endphp
 
             <div class="d-flex align-items-center gap-2 d-xl-none ms-auto">
-                <a href="{{ route('cart.index') }}"
-                   class="btn position-relative d-flex align-items-center justify-content-center rounded-circle"
-                   style="width: 42px; height: 42px; background: #fff; color: #8b5e3c; border: 1px solid rgba(216,184,146,0.45); box-shadow: 0 4px 12px rgba(139,94,60,0.08);">
+                <a href="{{ route('cart.index') }}" class="btn btn-icon-soft position-relative d-flex align-items-center justify-content-center rounded-circle">
                     <i class="fa fa-cart-shopping"></i>
+
                     @if($cartCount > 0)
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              style="font-size: 0.65rem; min-width: 18px; height: 18px; line-height: 18px; padding: 0 5px;">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-notification">
                             {{ $cartCount }}
                         </span>
                     @endif
                 </a>
 
-                <button class="navbar-toggler border-0 shadow-none d-flex align-items-center justify-content-center rounded-circle"
+                <button class="navbar-toggler btn-icon-soft border-0 shadow-none d-flex align-items-center justify-content-center rounded-circle"
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#navbarCollapse"
                         aria-controls="navbarCollapse"
                         aria-expanded="false"
-                        aria-label="Toggle navigation"
-                        style="width: 42px; height: 42px; background: #fff; box-shadow: 0 4px 12px rgba(139,94,60,0.08);">
-                    <span class="fa fa-bars" style="color: #8b5e3c; font-size: 1rem;"></span>
+                        aria-label="Toggle navigation">
+                    <span class="fa fa-bars"></span>
                 </button>
             </div>
 
             <div class="collapse navbar-collapse mt-3 mt-xl-0" id="navbarCollapse">
-                <div class="d-xl-none p-3 p-md-4 rounded-4"
-                     style="background: linear-gradient(180deg, #fffdfb 0%, #fff7ef 100%); border: 1px solid rgba(216,184,146,0.28); box-shadow: 0 14px 30px rgba(111,78,55,0.10);">
-                    <div class="navbar-nav text-start" style="row-gap: 0.55rem;">
+                <div class="d-xl-none p-3 p-md-4 rounded-4 mobile-menu-card">
+                    <div class="navbar-nav text-start mobile-nav-stack">
                         <a href="{{ route('home') }}"
-                           class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('home') ? 'active' : '' }}"
-                           style="color: {{ request()->routeIs('home') ? '#8b5e3c' : '#6f4e37' }}; background: {{ request()->routeIs('home') ? 'linear-gradient(90deg, rgba(216,184,146,0.18), rgba(216,184,146,0.07))' : 'transparent' }};">
+                           class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('home') ? 'active' : '' }}">
                             Beranda
                         </a>
 
-                        <a href="{{ route('catalog') }}"
-                           class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('catalog') || request()->routeIs('catalog.show') ? 'active' : '' }}"
-                           style="color: {{ request()->routeIs('catalog') || request()->routeIs('catalog.show') ? '#8b5e3c' : '#6f4e37' }}; background: {{ request()->routeIs('catalog') || request()->routeIs('catalog.show') ? 'linear-gradient(90deg, rgba(216,184,146,0.18), rgba(216,184,146,0.07))' : 'transparent' }};">
-                            Katalog
-                        </a>
+                        <div class="nav-item dropdown">
+                            <a href="#"
+                            class="nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill dropdown-toggle {{ $isCatalogMenuActive ? 'active' : '' }}"
+                            id="mobileCatalogDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                                Katalog
+                            </a>
 
-                        <a href="{{ route('rias.index') }}"
-                           class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('rias.index') ? 'active' : '' }}"
-                           style="color: {{ request()->routeIs('rias.index') ? '#8b5e3c' : '#6f4e37' }}; background: {{ request()->routeIs('rias.index') ? 'linear-gradient(90deg, rgba(216,184,146,0.18), rgba(216,184,146,0.07))' : 'transparent' }};">
-                            Jasa Rias
-                        </a>
+                            <ul class="dropdown-menu bg-white border-0 shadow-sm rounded-3 mt-2 p-2" aria-labelledby="mobileCatalogDropdown">
+                                <li>
+                                    <a href="{{ route('catalog') }}"
+                                    class="dropdown-item text-dark rounded-3 py-2 {{ request()->routeIs('catalog') || request()->routeIs('catalog.show') ? 'bg-light fw-bold border-start border-4 border-warning' : '' }}">
+                                        <i class="fa fa-shirt me-2 text-dark"></i>
+                                        Katalog Baju Adat
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('accessories.index') }}"
+                                    class="dropdown-item text-dark rounded-3 py-2 {{ request()->routeIs('accessories.index') ? 'bg-light fw-bold border-start border-4 border-warning' : '' }}">
+                                        <i class="fa fa-crown me-2 text-dark"></i>
+                                        Aksesoris
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="{{ route('rias.index') }}"
+                                    class="dropdown-item text-dark rounded-3 py-2 {{ request()->routeIs('rias.index') ? 'bg-light fw-bold border-start border-4 border-warning' : '' }}">
+                                        <i class="fa fa-wand-magic-sparkles me-2 text-dark"></i>
+                                        Jasa Rias
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
 
                         <a href="{{ route('recommendation.index') }}"
-                           class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? 'active' : '' }}"
-                           style="color: {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? '#8b5e3c' : '#6f4e37' }}; background: {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? 'linear-gradient(90deg, rgba(216,184,146,0.18), rgba(216,184,146,0.07))' : 'transparent' }};">
+                           class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? 'active' : '' }}">
                             Rekomendasi Paket
                         </a>
 
                         <a href="#footer"
-                           class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill"
-                           style="color: #6f4e37;">
+                           class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill">
                             Kontak
                         </a>
 
-                        <div class="pt-3 mt-2" style="border-top: 1px dashed rgba(216,184,146,0.45);">
-                            <a href="{{ route('cart.index') }}"
-                               class="btn w-100 rounded-pill py-2"
-                               style="background: linear-gradient(90deg, #8b5e3c, #a47148); color: #fff; border: none; box-shadow: 0 8px 18px rgba(139,94,60,0.18);">
+                        <div class="pt-3 mt-2 mobile-menu-divider">
+                            <a href="{{ route('cart.index') }}" class="btn btn-brand w-100 rounded-pill py-2">
                                 <i class="fa fa-cart-shopping me-2"></i>Lihat Keranjang
+
                                 @if($cartCount > 0)
-                                    <span class="badge rounded-pill bg-light text-dark ms-2">{{ $cartCount }}</span>
+                                    <span class="badge rounded-pill bg-light text-dark ms-2">
+                                        {{ $cartCount }}
+                                    </span>
                                 @endif
                             </a>
                         </div>
                     </div>
                 </div>
 
+                {{-- DESKTOP NAVBAR --}}
                 <div class="d-none d-xl-flex navbar-nav mx-auto align-items-center gap-2 gap-xxl-3">
                     <a href="{{ route('home') }}"
-                       class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('home') ? 'active' : '' }}"
-                       style="color: {{ request()->routeIs('home') ? '#8b5e3c' : '#6f4e37' }}; background: {{ request()->routeIs('home') ? 'linear-gradient(90deg, rgba(216,184,146,0.16), rgba(216,184,146,0.06))' : 'transparent' }}; transition: all 0.25s ease;">
+                       class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('home') ? 'active' : '' }}">
                         Beranda
                     </a>
 
-                    <a href="{{ route('catalog') }}"
-                       class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('catalog') || request()->routeIs('catalog.show') ? 'active' : '' }}"
-                       style="color: {{ request()->routeIs('catalog') || request()->routeIs('catalog.show') ? '#8b5e3c' : '#6f4e37' }}; background: {{ request()->routeIs('catalog') || request()->routeIs('catalog.show') ? 'linear-gradient(90deg, rgba(216,184,146,0.16), rgba(216,184,146,0.06))' : 'transparent' }}; transition: all 0.25s ease;">
-                        Katalog
-                    </a>
+                    <div class="nav-item dropdown">
+                        <a href="{{ route('catalog') }}"
+                        class="nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill dropdown-toggle {{ $isCatalogMenuActive ? 'active' : '' }}"
+                        id="desktopCatalogDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                            Katalog
+                        </a>
 
-                    <a href="{{ route('rias.index') }}"
-                       class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('rias.index') ? 'active' : '' }}"
-                       style="color: {{ request()->routeIs('rias.index') ? '#8b5e3c' : '#6f4e37' }}; background: {{ request()->routeIs('rias.index') ? 'linear-gradient(90deg, rgba(216,184,146,0.16), rgba(216,184,146,0.06))' : 'transparent' }}; transition: all 0.25s ease;">
-                        Jasa Rias
-                    </a>
+                        <ul class="dropdown-menu bg-white border-0 shadow-sm rounded-3 mt-2 p-2" aria-labelledby="desktopCatalogDropdown">
+                            <li>
+                                <a href="{{ route('catalog') }}"
+                                class="dropdown-item text-dark rounded-3 py-2 {{ request()->routeIs('catalog') || request()->routeIs('catalog.show') ? 'bg-light fw-bold border-start border-4 border-warning' : '' }}">
+                                    <i class="fa fa-shirt me-2 text-dark"></i>
+                                    Katalog Baju Adat
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('accessories.index') }}"
+                                class="dropdown-item text-dark rounded-3 py-2 {{ request()->routeIs('accessories.index') ? 'bg-light fw-bold border-start border-4 border-warning' : '' }}">
+                                    <i class="fa fa-crown me-2 text-dark"></i>
+                                    Aksesoris
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('rias.index') }}"
+                                class="dropdown-item text-dark rounded-3 py-2 {{ request()->routeIs('rias.index') ? 'bg-light fw-bold border-start border-4 border-warning' : '' }}">
+                                    <i class="fa fa-wand-magic-sparkles me-2 text-dark"></i>
+                                    Jasa Rias
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
                     <a href="{{ route('recommendation.index') }}"
-                       class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? 'active' : '' }}"
-                       style="color: {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? '#8b5e3c' : '#6f4e37' }}; background: {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? 'linear-gradient(90deg, rgba(216,184,146,0.16), rgba(216,184,146,0.06))' : 'transparent' }}; transition: all 0.25s ease;">
+                       class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? 'active' : '' }}">
                         Rekomendasi Paket
                     </a>
 
                     <a href="#footer"
-                       class="nav-item nav-link fw-semibold px-3 py-2 rounded-pill"
-                       style="color: #6f4e37; transition: all 0.25s ease;">
+                       class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill">
                         Kontak
                     </a>
                 </div>
 
                 <div class="d-none d-xl-flex align-items-center ms-xl-3">
                     <a href="{{ route('cart.index') }}"
-                       class="btn position-relative d-flex align-items-center justify-content-center rounded-pill px-4 py-2"
-                       style="background: #fff; color: #8b5e3c; border: 1px solid rgba(216,184,146,0.45); box-shadow: 0 6px 16px rgba(139,94,60,0.08); min-width: 56px;">
+                       class="btn btn-cart-pill position-relative d-flex align-items-center justify-content-center rounded-pill px-4 py-2">
                         <i class="fa fa-cart-shopping"></i>
+
                         @if($cartCount > 0)
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                  style="font-size: 0.65rem; min-width: 18px; height: 18px; line-height: 18px; padding: 0 5px;">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-notification">
                                 {{ $cartCount }}
                             </span>
                         @endif

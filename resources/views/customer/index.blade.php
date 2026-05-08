@@ -1,240 +1,397 @@
 @extends('customer.layouts.master')
 
-@section('content')
-<div class="container-fluid page-header position-relative overflow-hidden py-5 mb-0"
-     style="margin-top: -55px !important; padding-top: 180px !important; padding-bottom: 120px !important; background:
-     linear-gradient(rgba(52, 36, 29, 0.55), rgba(52, 36, 29, 0.72)),
-     url('{{ asset('img_item_upload/indo.jpg') }}');
-     background-position: center center;
-     background-repeat: no-repeat;
-     background-size: cover;">
+@section('title', 'Beranda - Quin Salon')
 
-    <div class="position-absolute top-0 start-0 w-100 h-100"
-         style="background:
-         radial-gradient(circle at top left, rgba(255,255,255,0.10), transparent 30%),
-         radial-gradient(circle at bottom right, rgba(245,210,166,0.12), transparent 28%);
-         pointer-events: none;">
-    </div>
+@section('content')
+@php
+    $heroItem = $featuredItems->first();
+
+    $heroImage = $heroItem && $heroItem->img
+        ? asset('img_item_upload/' . $heroItem->img)
+        : asset('img_item_upload/indo.jpg');
+
+    $previewBundles = $featuredBundles->take(2);
+@endphp
+
+<section class="container-fluid bg-dark position-relative overflow-hidden mt-5 pt-5 pb-5">
+    <img src="{{ $heroImage }}"
+         class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-50"
+         alt="Quin Salon"
+         onerror="this.onerror=null;this.src='{{ asset('img_item_upload/indo.jpg') }}';">
 
     <div class="container position-relative py-5">
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-10 col-xl-9">
-                <span class="badge rounded-pill px-4 py-2 mb-4"
-                      style="background: rgba(255,255,255,0.10); color: #f5d2a6; font-weight: 600; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(6px);">
-                    Quin Salon • Persewaan Baju Adat & Jasa Rias
+        <div class="row justify-content-center text-center py-lg-5">
+            <div class="col-lg-9">
+                <span class="badge bg-warning text-dark rounded-pill px-4 py-2 mb-3">
+                    Quin Salon • Baju Adat & Jasa Rias
                 </span>
 
-                <h1 class="text-white fw-bold mb-4"
-                    style="font-size: clamp(2.2rem, 5vw, 4.2rem); line-height: 1.18; letter-spacing: 0.2px;">
-                    Tampil Anggun, Serasi,
-                    <br>
-                    dan Berkesan di Setiap Momen
+                <h1 class="display-4 text-white fw-bold mb-3">
+                    Tampil Anggun, Serasi, dan Percaya Diri di Momen Spesial
                 </h1>
 
-                <p class="text-white mx-auto mb-5"
-                   style="max-width: 760px; font-size: 1.05rem; line-height: 1.9; opacity: 0.94;">
-                    Quin Salon menghadirkan pengalaman yang lebih praktis untuk memilih baju adat, jasa rias,
-                    dan paket rekomendasi yang sesuai dengan kebutuhan acara Anda—dengan tampilan yang nyaman,
-                    elegan, dan mudah digunakan.
+                <p class="text-white mx-auto mb-4 max-w-760">
+                    Quin Salon menyediakan persewaan baju adat, aksesoris, jasa rias, dan paket rekomendasi
+                    untuk membantu pelanggan tampil lebih berkesan dalam acara wisuda, lamaran, pernikahan,
+                    maupun kebutuhan acara adat lainnya.
                 </p>
 
-                <div class="d-flex justify-content-center flex-wrap gap-3">
-                    <a href="{{ route('catalog') }}"
-                       class="btn rounded-pill px-4 px-lg-5 py-3"
-                       style="background: linear-gradient(90deg, #8b5e3c, #a47148); color: #fff; border: none; font-weight: 600; box-shadow: 0 12px 28px rgba(139,94,60,0.24);">
-                        <i class="fa fa-shirt me-2"></i>Lihat Katalog
+                <div class="d-flex justify-content-center flex-wrap gap-2">
+                    <a href="#koleksi-unggulan" class="btn btn-dark rounded-pill px-4 py-3">
+                        <i class="fa fa-arrow-down me-2"></i>Lihat Katalog
                     </a>
 
-                    <a href="{{ route('recommendation.index') }}"
-                       class="btn rounded-pill px-4 px-lg-5 py-3"
-                       style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.28); font-weight: 600; backdrop-filter: blur(6px);">
-                        <i class="fa fa-gift me-2"></i>Coba Rekomendasi Paket
+                    <a href="{{ route('recommendation.index') }}" class="btn btn-outline-light rounded-pill px-4 py-3">
+                        <i class="fa fa-gift me-2"></i>Coba Rekomendasi
                     </a>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<div class="container-fluid py-5"
-     style="background:
-     linear-gradient(180deg, #fffaf5 0%, #fff7ef 48%, #fffaf5 100%);">
+<section class="container-fluid py-5 bg-cream">
     <div class="container">
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                            Tentang Quin Salon
+                        </span>
 
-        <div class="text-center mx-auto mb-5" style="max-width: 780px;">
-            <h6 class="text-uppercase mb-2"
-                style="color: #b88352; letter-spacing: 2px; font-weight: 700;">
-                Layanan Utama
-            </h6>
-            <h2 class="fw-bold mb-3" style="color: #3f2c22; font-size: clamp(1.7rem, 3vw, 2.5rem);">
-                Pilihan Layanan yang Disusun
-                <span style="color: #8b5e3c;">Lebih Elegan</span>
-            </h2>
-            <p class="text-muted mb-0" style="line-height: 1.9;">
-                Dari koleksi baju adat, layanan rias profesional, hingga sistem rekomendasi paket,
-                setiap layanan dirancang untuk membantu pelanggan mendapatkan pengalaman yang nyaman,
-                praktis, dan tetap berkelas.
-            </p>
-        </div>
+                        <h2 class="fw-bold text-dark mb-3">
+                            Solusi Penampilan Adat yang Lebih Praktis dan Elegan
+                        </h2>
 
-        <div id="layanan" class="row g-4 g-lg-5 mb-5">
-            <div class="col-md-6 col-xl-4">
-                <div class="h-100 rounded-4 shadow-sm overflow-hidden"
-                     style="background: rgba(255,255,255,0.88); border: 1px solid rgba(240,223,207,0.95); backdrop-filter: blur(4px); box-shadow: 0 12px 28px rgba(101,74,56,0.06) !important;">
-                    <div class="p-4 p-lg-5 h-100 d-flex flex-column">
-                        <div class="mb-4 d-flex align-items-center justify-content-center rounded-circle"
-                             style="width: 72px; height: 72px; background: linear-gradient(135deg, #fbf1e7, #f4e2cd); color: #8b5e3c; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);">
-                            <i class="fa fa-shirt fa-lg"></i>
-                        </div>
-
-                        <h4 class="fw-bold mb-3" style="color: #3f2c22;">Katalog Baju Adat</h4>
-
-                        <p class="text-muted mb-4" style="line-height: 1.9;">
-                            Beragam pilihan busana adat yang cocok untuk wisuda, pernikahan,
-                            lamaran, dan acara spesial lainnya dengan tampilan elegan dan serasi.
+                        <p class="text-muted mb-4">
+                            Quin Salon hadir untuk membantu pelanggan menemukan tampilan terbaik melalui
+                            koleksi baju adat, aksesoris, layanan rias, hingga rekomendasi paket.
+                            Semua ditata agar proses memilih produk menjadi lebih nyaman, rapi, dan mudah dipahami.
                         </p>
 
-                        <div class="mt-auto">
-                            <a href="{{ route('catalog') }}"
-                               class="btn rounded-pill px-4 py-2"
-                               style="background-color: #8b5e3c; color: #fff; border: none; font-weight: 600;">
-                                Jelajahi Katalog
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xl-4">
-                <div class="h-100 rounded-4 shadow-sm overflow-hidden"
-                     style="background: rgba(255,255,255,0.88); border: 1px solid rgba(240,223,207,0.95); backdrop-filter: blur(4px); box-shadow: 0 12px 28px rgba(101,74,56,0.06) !important;">
-                    <div class="p-4 p-lg-5 h-100 d-flex flex-column">
-                        <div class="mb-4 d-flex align-items-center justify-content-center rounded-circle"
-                             style="width: 72px; height: 72px; background: linear-gradient(135deg, #fbf1e7, #f4e2cd); color: #8b5e3c; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);">
-                            <i class="fa fa-wand-magic-sparkles fa-lg"></i>
-                        </div>
-
-                        <h4 class="fw-bold mb-3" style="color: #3f2c22;">Jasa Rias Profesional</h4>
-
-                        <p class="text-muted mb-4" style="line-height: 1.9;">
-                            Layanan rias yang membantu menyempurnakan penampilan agar tampak lebih
-                            anggun, harmonis, dan sesuai dengan karakter acara Anda.
-                        </p>
-
-                        <div class="mt-auto">
-                            <a href="{{ route('rias.index') }}"
-                               class="btn rounded-pill px-4 py-2"
-                               style="background-color: #8b5e3c; color: #fff; border: none; font-weight: 600;">
-                                Lihat Layanan
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-12 col-xl-4">
-                <div class="h-100 rounded-4 shadow-sm overflow-hidden"
-                     style="background: linear-gradient(145deg, #8b5e3c 0%, #a47148 55%, #b37e55 100%); border: 1px solid rgba(139,94,60,0.22); box-shadow: 0 18px 36px rgba(139,94,60,0.16) !important;">
-                    <div class="p-4 p-lg-5 h-100 d-flex flex-column position-relative">
-                        <div class="position-absolute top-0 end-0"
-                             style="width: 140px; height: 140px; background: radial-gradient(circle, rgba(255,255,255,0.14), transparent 70%);">
-                        </div>
-
-                        <div class="mb-4 d-flex align-items-center justify-content-center rounded-circle"
-                             style="width: 72px; height: 72px; background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.18); backdrop-filter: blur(4px);">
-                            <i class="fa fa-gift fa-lg"></i>
-                        </div>
-
-                        <h4 class="fw-bold mb-3 text-white">Paket Rekomendasi</h4>
-
-                        <p class="mb-4" style="line-height: 1.9; color: rgba(255,255,255,0.9);">
-                            Sistem rekomendasi membantu pelanggan memilih kombinasi layanan yang paling sesuai
-                            dengan kebutuhan acara secara cepat, praktis, dan lebih terarah.
-                        </p>
-
-                        <div class="mt-auto">
-                            <a href="{{ route('recommendation.index') }}"
-                               class="btn rounded-pill px-4 py-2"
-                               style="background-color: #fff; color: #8b5e3c; border: none; font-weight: 700;">
-                                Coba Sekarang
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-center mx-auto mb-5 pt-2" style="max-width: 760px;">
-            <h6 class="text-uppercase mb-2"
-                style="color: #b88352; letter-spacing: 2px; font-weight: 700;">
-                Preview Katalog
-            </h6>
-            <h2 class="fw-bold mb-3" style="color: #3f2c22; font-size: clamp(1.7rem, 3vw, 2.4rem);">
-                Pilihan Item Unggulan Quin Salon
-            </h2>
-            <p class="text-muted mb-0" style="line-height: 1.9;">
-                Beberapa item pilihan kami tampilkan sebagai gambaran koleksi terbaik yang tersedia
-                di Quin Salon.
-            </p>
-        </div>
-
-        <div class="row g-4">
-            @foreach ($featuredItems->take(6) as $item)
-                <div class="col-md-6 col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden"
-                         style="border: 1px solid #f1e3d3 !important; background-color: #fff;">
-                        <div class="position-relative">
-                            <img src="{{ asset('img_item_upload/' . ($item->img ?? 'default.jpg')) }}"
-                                 class="img-fluid w-100"
-                                 alt="{{ $item->name }}"
-                                 style="height: 250px; object-fit: cover;"
-                                 onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
-                            <span class="badge position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill"
-                                  style="background-color: #8b5e3c; color: #fff;">
-                                {{ $item->category->cat_name ?? 'Layanan' }}
-                            </span>
-                        </div>
-
-                        <div class="card-body d-flex flex-column p-4">
-                            <h4 class="fw-bold mb-2" style="min-height: 58px; color: #3f2c22;">
-                                {{ $item->name }}
-                            </h4>
-
-                            <p class="text-muted mb-3" style="min-height: 72px;">
-                                {{ $item->description }}
-                            </p>
-
-                            <div class="mt-auto pt-3 border-top">
-                                <div class="mb-3">
-                                    <small class="text-muted d-block mb-1">Harga</small>
-                                    <div class="fw-bold" style="color: #8b5e3c; font-size: 1.1rem;">
-                                        Rp{{ number_format($item->price, 0, ',', '.') }}
-                                    </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="border rounded-4 p-3 h-100 bg-light">
+                                    <h6 class="fw-bold text-dark mb-2">
+                                        <i class="fa fa-location-dot text-warning me-2"></i>Lokasi
+                                    </h6>
+                                    <p class="text-muted mb-0">
+                                        Jombang, Jawa Timur
+                                    </p>
                                 </div>
+                            </div>
 
-                                <div class="row g-2">
-                                    <div class="col-12">
-                                        <a href="{{ route('catalog.show', $item->id) }}"
-                                           class="btn w-100 rounded-pill py-2"
-                                           style="background-color: #8b5e3c; color: #fff; border: none; font-weight: 600;">
-                                            <i class="fa fa-eye me-1"></i> Detail
-                                        </a>
-                                    </div>
+                            <div class="col-md-6">
+                                <div class="border rounded-4 p-3 h-100 bg-light">
+                                    <h6 class="fw-bold text-dark mb-2">
+                                        <i class="fa fa-star text-warning me-2"></i>Layanan Utama
+                                    </h6>
+                                    <p class="text-muted mb-0">
+                                        Baju adat, aksesoris, jasa rias, dan paket rekomendasi
+                                    </p>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            <a href="{{ route('catalog') }}" class="btn btn-dark rounded-pill px-4">
+                                <i class="fa fa-shirt me-2"></i>Baju Adat
+                            </a>
+
+                            <a href="{{ route('accessories.index') }}" class="btn btn-outline-dark rounded-pill px-4">
+                                <i class="fa fa-crown me-2"></i>Aksesoris
+                            </a>
+
+                            <a href="{{ route('rias.index') }}" class="btn btn-outline-dark rounded-pill px-4">
+                                <i class="fa fa-wand-magic-sparkles me-2"></i>Jasa Rias
+                            </a>
+                        </div>
                     </div>
                 </div>
-            @endforeach
-        </div>
+            </div>
 
-        <div class="text-center mt-5 pt-2">
-            <a href="{{ route('catalog') }}"
-               class="btn rounded-pill px-4 px-lg-5 py-3"
-               style="background: linear-gradient(90deg, #8b5e3c, #a47148); color: #fff; border: none; font-weight: 600; box-shadow: 0 12px 26px rgba(139,94,60,0.18);">
-                <i class="fa fa-arrow-right me-2"></i>Lihat Semua Katalog
-            </a>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                            Alur Pemesanan
+                        </span>
+
+                        <h2 class="fw-bold text-dark mb-4">
+                            Proses Pemilihan Dibuat Lebih Sederhana
+                        </h2>
+
+                        <div class="d-flex gap-3 mb-4">
+                            <span class="badge bg-dark rounded-pill align-self-start px-3 py-2">01</span>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Pilih Kebutuhan</h6>
+                                <p class="text-muted mb-0">
+                                    Jelajahi baju adat, aksesoris, jasa rias, atau gunakan fitur rekomendasi paket.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 mb-4">
+                            <span class="badge bg-dark rounded-pill align-self-start px-3 py-2">02</span>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Lihat Detail Produk</h6>
+                                <p class="text-muted mb-0">
+                                    Periksa deskripsi, harga, varian, dan ketersediaan item sebelum memesan.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <span class="badge bg-dark rounded-pill align-self-start px-3 py-2">03</span>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Checkout dengan Mudah</h6>
+                                <p class="text-muted mb-0">
+                                    Tambahkan ke keranjang, isi data pesanan, lalu lanjutkan ke pembayaran.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="{{ route('cart.index') }}" class="btn btn-outline-dark rounded-pill px-4">
+                                <i class="fa fa-cart-shopping me-2"></i>Lihat Keranjang
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>
+
+<section id="koleksi-unggulan" class="container-fluid py-5">
+    <div class="container">
+        <div class="row g-4 align-items-center mb-4">
+            <div class="col-lg-8">
+                <span class="badge bg-warning text-dark rounded-pill px-4 py-2 mb-3">
+                    Koleksi Unggulan
+                </span>
+
+                <h2 class="fw-bold text-dark mb-2">
+                    Preview Baju Adat Quin Salon
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Beberapa koleksi ditampilkan sebagai gambaran awal sebelum pelanggan membuka katalog lengkap.
+                </p>
+            </div>
+
+            <div class="col-lg-4 text-lg-end">
+                <a href="{{ route('catalog') }}" class="btn btn-dark rounded-pill px-4 py-3">
+                    Lihat Semua Katalog
+                </a>
+            </div>
+        </div>
+
+        <div id="featuredItemCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                @forelse ($featuredItems->take(6)->chunk(3) as $chunk)
+                    <div class="carousel-item {{ $loop->first ? 'active' : '' }}" data-bs-interval="4000">
+                        <div class="row g-4">
+                            @foreach($chunk as $item)
+                                <div class="col-md-4">
+                                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                                        <div class="ratio ratio-4x3 bg-light border-bottom">
+                                            <img src="{{ asset('img_item_upload/' . ($item->img ?? 'default.jpg')) }}"
+                                                 class="w-100 h-100 object-fit-cover"
+                                                 alt="{{ $item->name }}"
+                                                 onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
+                                        </div>
+
+                                        <div class="card-body p-4">
+                                            <span class="badge bg-dark rounded-pill mb-3">
+                                                {{ $item->category->cat_name ?? 'Baju Adat' }}
+                                            </span>
+
+                                            <h5 class="fw-bold text-dark mb-2">
+                                                {{ \Illuminate\Support\Str::limit($item->name, 45) }}
+                                            </h5>
+
+                                            <p class="text-muted small mb-3">
+                                                {{ \Illuminate\Support\Str::limit($item->description, 75) }}
+                                            </p>
+
+                                            <div class="d-flex justify-content-between align-items-center gap-3">
+                                                <div>
+                                                    <small class="text-muted d-block">Mulai dari</small>
+                                                    <strong class="text-dark">
+                                                        Rp{{ number_format($item->price, 0, ',', '.') }}
+                                                    </strong>
+                                                </div>
+
+                                                <a href="{{ route('catalog.show', $item->id) }}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+                                                    Detail
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @empty
+                    <div class="carousel-item active">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body text-center p-5">
+                                <div class="display-5 text-muted mb-3">
+                                    <i class="fa fa-shirt"></i>
+                                </div>
+
+                                <h4 class="fw-bold text-dark mb-2">Koleksi belum tersedia</h4>
+
+                                <p class="text-muted mb-0">
+                                    Silakan tambahkan data baju adat aktif melalui halaman admin.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @endforelse
+            </div>
+
+            @if($featuredItems->take(6)->count() > 3)
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <button class="btn btn-outline-dark rounded-circle" type="button" data-bs-target="#featuredItemCarousel" data-bs-slide="prev">
+                        <i class="fa fa-chevron-left"></i>
+                    </button>
+
+                    <button class="btn btn-outline-dark rounded-circle" type="button" data-bs-target="#featuredItemCarousel" data-bs-slide="next">
+                        <i class="fa fa-chevron-right"></i>
+                    </button>
+                </div>
+            @endif
+        </div>
+    </div>
+</section>
+
+<section class="container-fluid py-5 bg-light">
+    <div class="container">
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-5">
+                <div class="card bg-dark text-white border-0 shadow rounded-4 h-100">
+                    <div class="card-body p-4 p-lg-5 d-flex flex-column justify-content-between">
+                        <div>
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                Rekomendasi Paket
+                            </span>
+
+                            <h2 class="fw-bold mb-3">
+                                Bingung Menentukan Kombinasi yang Serasi?
+                            </h2>
+
+                            <p class="text-white-50 mb-4">
+                                Gunakan fitur rekomendasi untuk membantu memilih kombinasi baju adat,
+                                aksesoris, dan jasa rias sesuai kebutuhan acara Anda.
+                            </p>
+                        </div>
+
+                        <a href="{{ route('recommendation.index') }}" class="btn btn-light rounded-pill px-4 py-3 align-self-start">
+                            <i class="fa fa-gift me-2"></i>Coba Rekomendasi
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
+                            <div>
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                    Paket Pilihan
+                                </span>
+
+                                <h3 class="fw-bold text-dark mb-0">
+                                    Preview Paket Quin Salon
+                                </h3>
+                            </div>
+
+                            <a href="{{ route('recommendation.index') }}" class="btn btn-outline-dark rounded-pill px-4 align-self-start">
+                                Lihat Rekomendasi
+                            </a>
+                        </div>
+
+                        @forelse($previewBundles as $bundle)
+                            <div class="border rounded-4 p-3 p-md-4 mb-3 bg-light">
+                                <div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
+                                    <div>
+                                        <h5 class="fw-bold text-dark mb-2">
+                                            {{ $bundle->bundle_name }}
+                                        </h5>
+
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="badge bg-white text-dark border rounded-pill px-3 py-2">
+                                                <i class="fa fa-box me-1"></i>Paket Bundling
+                                            </span>
+
+                                            <span class="badge bg-white text-dark border rounded-pill px-3 py-2">
+                                                <i class="fa fa-tag me-1"></i>
+                                                Rp{{ number_format($bundle->bundle_price, 0, ',', '.') }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <a href="{{ route('bundle.show', $bundle->id) }}" class="btn btn-dark rounded-pill px-4">
+                                        Detail
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="card border-0 bg-light rounded-4">
+                                <div class="card-body text-center p-5">
+                                    <div class="display-5 text-muted mb-3">
+                                        <i class="fa fa-gift"></i>
+                                    </div>
+
+                                    <h4 class="fw-bold text-dark mb-2">
+                                        Paket belum tersedia
+                                    </h4>
+
+                                    <p class="text-muted mb-0">
+                                        Silakan tambahkan paket aktif melalui halaman admin.
+                                    </p>
+                                </div>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container-fluid py-5">
+    <div class="container">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 p-lg-5 text-center">
+                <span class="badge bg-warning text-dark rounded-pill px-4 py-2 mb-3">
+                    Siap Tampil Lebih Berkesan?
+                </span>
+
+                <h2 class="fw-bold text-dark mb-3">
+                    Mulai Pilih Tampilan Terbaik untuk Acara Anda
+                </h2>
+
+                <p class="text-muted mx-auto mb-4 max-w-760">
+                    Jelajahi koleksi baju adat, lengkapi dengan aksesoris dan jasa rias,
+                    atau gunakan fitur rekomendasi agar pilihan layanan terasa lebih mudah dan terarah.
+                </p>
+
+                <div class="d-flex justify-content-center flex-wrap gap-2">
+                    <a href="{{ route('catalog') }}" class="btn btn-dark rounded-pill px-4 px-lg-5 py-3">
+                        <i class="fa fa-shirt me-2"></i>Buka Katalog
+                    </a>
+
+                    <a href="{{ route('recommendation.index') }}" class="btn btn-outline-dark rounded-pill px-4 px-lg-5 py-3">
+                        <i class="fa fa-gift me-2"></i>Coba Rekomendasi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 @endsection
