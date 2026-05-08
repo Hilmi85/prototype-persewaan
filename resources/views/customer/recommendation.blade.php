@@ -4,22 +4,6 @@
 
 @section('content')
 @php
-    /*
-        Form rekomendasi ini disesuaikan kembali dengan proposal TA.
-
-        IF jenis_acara
-        AND kategori_adat
-        AND gender
-        AND butuh_rias
-        AND budget
-        THEN tampilkan bundle yang sesuai
-        ELSE tampilkan Paket Custom / alternatif
-
-        Catatan:
-        kategori_item dan size tidak dipakai sebagai rule utama.
-        Size/varian dicek setelah paket ditemukan.
-    */
-
     $jenisAcaraList = collect($jenisAcaraOptions ?? [
         'Pernikahan',
         'Lamaran',
@@ -59,26 +43,41 @@
     $selectedButuhRias = old('butuh_rias', '1');
 @endphp
 
-<div class="container-fluid page-header py-5 mb-5"
-     style="margin-top: -55px !important; padding-top: 170px !important; background: linear-gradient(rgba(60, 42, 33, 0.65), rgba(60, 42, 33, 0.65)), url('{{ asset('img_item_upload/indo.jpg') }}'); background-position: center center; background-repeat: no-repeat; background-size: cover;">
-    <div class="container py-5 text-center">
-        <span class="badge rounded-pill px-4 py-2 mb-3"
-              style="background-color: rgba(255,255,255,0.12); color: #f5d2a6;">
-            Quin Salon • Rule-Based Recommendation
-        </span>
+<section class="container-fluid page-header customer-hero py-5 mb-5">
+    <div class="container py-5">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-9">
+                <span class="badge bg-warning text-dark rounded-pill px-4 py-2 mb-3">
+                    Quin Salon • Rekomendasi Paket
+                </span>
 
-        <h1 class="display-4 text-white fw-bold">Temukan Paket Bundling yang Cocok</h1>
+                <h1 class="display-4 text-white fw-bold mb-3">
+                    Temukan Paket Bundling yang Paling Sesuai
+                </h1>
 
-        <p class="text-white mb-0">
-            Isi kebutuhan acara Anda, lalu sistem akan mencocokkan input dengan aturan rekomendasi yang tersedia.
-        </p>
+                <p class="text-white mx-auto mb-4 max-w-760">
+                    Isi kebutuhan acara Anda, lalu sistem akan mencocokkan pilihan dengan rule rekomendasi
+                    untuk menampilkan paket yang paling cocok.
+                </p>
+
+                <div class="d-flex justify-content-center flex-wrap gap-2">
+                    <a href="#form-rekomendasi" class="btn btn-dark rounded-pill px-4 py-3">
+                        <i class="fa fa-arrow-down me-2"></i>Mulai Rekomendasi
+                    </a>
+
+                    <a href="{{ route('catalog') }}" class="btn btn-outline-light rounded-pill px-4 py-3">
+                        <i class="fa fa-shirt me-2"></i>Lihat Katalog
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
 
-<div class="container-fluid py-5" style="background-color: #fffaf5;">
+<section id="form-rekomendasi" class="container-fluid py-5 bg-cream">
     <div class="container">
         @if($errors->any())
-            <div class="alert alert-danger rounded-4 mb-4">
+            <div class="alert alert-danger rounded-4 shadow-sm mb-4">
                 <strong>Data belum lengkap.</strong>
                 <ul class="mb-0 mt-2">
                     @foreach($errors->all() as $error)
@@ -88,152 +87,161 @@
             </div>
         @endif
 
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="bg-white rounded-4 shadow-sm overflow-hidden" style="border: 1px solid #f1e3d3;">
-                    <div class="row g-0">
-                        <div class="col-lg-4">
-                            <div class="h-100 p-4 p-lg-5"
-                                 style="background: linear-gradient(145deg, #8b5e3c 0%, #a47148 55%, #b37e55 100%); color: #fff;">
-                                <div class="mb-4 d-flex align-items-center justify-content-center rounded-circle"
-                                     style="width: 72px; height: 72px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.18);">
-                                    <i class="fa fa-gift fa-lg"></i>
-                                </div>
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                            Cara Kerja
+                        </span>
 
-                                <h4 class="fw-bold mb-3 text-white">Cara Kerja Rekomendasi</h4>
+                        <h3 class="fw-bold text-dark mb-3">
+                            Rekomendasi Berdasarkan Kebutuhan Acara
+                        </h3>
 
-                                <p class="mb-4" style="line-height: 1.9; color: rgba(255,255,255,0.88);">
-                                    Sistem membaca kebutuhan customer, lalu mencocokkannya dengan rule aktif yang dibuat oleh admin.
+                        <p class="text-muted mb-4">
+                            Sistem akan membaca input pelanggan dan mencocokkannya dengan rule aktif yang dibuat
+                            oleh admin.
+                        </p>
+
+                        <div class="border border-warning rounded-4 p-3 bg-light mb-3">
+                            <div class="d-flex gap-3 align-items-start">
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2">IF</span>
+                                <p class="text-muted small mb-0">
+                                    Jenis acara, kategori adat, gender, kebutuhan rias, dan budget cocok dengan rule.
                                 </p>
-
-                                <div class="p-3 rounded-4"
-                                     style="background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18);">
-                                    <strong>IF</strong>
-                                    <div class="small mt-2" style="line-height: 1.8;">
-                                        Jenis acara, kategori adat, gender, kebutuhan rias, dan budget cocok.
-                                    </div>
-
-                                    <hr style="border-color: rgba(255,255,255,0.25);">
-
-                                    <strong>THEN</strong>
-                                    <div class="small mt-2" style="line-height: 1.8;">
-                                        Sistem menampilkan paket bundling yang sesuai.
-                                    </div>
-                                </div>
-
-                                <div class="mt-4 small" style="color: rgba(255,255,255,0.78); line-height: 1.8;">
-                                    Ukuran atau varian tidak dipakai sebagai rule utama. Varian dicek setelah paket ditemukan.
-                                </div>
                             </div>
                         </div>
 
-                        <div class="col-lg-8">
-                            <div class="p-4 p-md-5">
-                                <h4 class="fw-bold mb-2" style="color: #3f2c22;">
-                                    Form Rekomendasi Paket
-                                </h4>
-
-                                <p class="text-muted mb-4">
-                                    Lengkapi data berikut agar sistem dapat menentukan paket bundling yang paling sesuai.
+                        <div class="border border-warning rounded-4 p-3 bg-light mb-4">
+                            <div class="d-flex gap-3 align-items-start">
+                                <span class="badge bg-dark rounded-pill px-3 py-2">THEN</span>
+                                <p class="text-muted small mb-0">
+                                    Sistem menampilkan paket bundling yang paling sesuai untuk pelanggan.
                                 </p>
-
-                                <form action="{{ route('recommendation.process') }}" method="POST">
-                                    @csrf
-
-                                    <div class="row g-4">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Jenis Acara</label>
-                                            <select name="jenis_acara" id="jenis_acara" class="form-select rounded-3" required>
-                                                <option value="">-- Pilih Jenis Acara --</option>
-
-                                                @foreach($jenisAcaraList as $jenisAcara)
-                                                    <option value="{{ $jenisAcara }}" {{ $selectedJenisAcara == $jenisAcara ? 'selected' : '' }}>
-                                                        {{ $jenisAcara }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-semibold">Kategori Adat</label>
-                                            <select name="kategori_adat" id="kategori_adat" class="form-select rounded-3" required>
-                                                <option value="">-- Pilih Kategori Adat --</option>
-
-                                                @foreach($kategoriAdatList as $kategoriAdat)
-                                                    <option value="{{ $kategoriAdat }}" {{ $selectedKategoriAdat == $kategoriAdat ? 'selected' : '' }}>
-                                                        {{ $kategoriAdat }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-semibold">Gender</label>
-                                            <select name="gender" id="gender" class="form-select rounded-3" required>
-                                                <option value="">-- Pilih Gender --</option>
-
-                                                @foreach($genderList as $gender)
-                                                    <option value="{{ $gender }}" {{ $selectedGender == $gender ? 'selected' : '' }}>
-                                                        {{ $gender }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-semibold">Butuh Rias?</label>
-                                            <select name="butuh_rias" id="butuh_rias" class="form-select rounded-3" required>
-                                                <option value="1" {{ $selectedButuhRias == '1' ? 'selected' : '' }}>Ya</option>
-                                                <option value="0" {{ $selectedButuhRias == '0' ? 'selected' : '' }}>Tidak</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-semibold">Budget</label>
-                                            <select name="budget" id="budget" class="form-select rounded-3" required>
-                                                <option value="">-- Pilih Budget --</option>
-
-                                                @foreach($budgetList as $budget)
-                                                    <option value="{{ $budget }}" {{ $selectedBudget == $budget ? 'selected' : '' }}>
-                                                        {{ $budget }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="col-12">
-                                            <div id="rule_preview"
-                                                 class="p-3 rounded-4"
-                                                 style="background-color: #fff7ef; border: 1px solid #f0dfcf; color: #7a6456;">
-                                                <i class="fa fa-circle-info me-2"></i>
-                                                Sistem akan mencocokkan kebutuhan Anda dengan aturan rekomendasi yang tersedia.
-                                            </div>
-                                        </div>
-
-                                        <div class="col-12">
-                                            <div class="p-3 rounded-4"
-                                                 style="background-color: #fdf2e7; border: 1px dashed #e6c7a8; color: #7a4d2c;">
-                                                <strong>Aturan Sistem:</strong>
-                                                <div class="mt-2 small">
-                                                    IF jenis acara, kategori adat, gender, kebutuhan rias, dan budget cocok dengan rule,
-                                                    THEN sistem menampilkan paket bundling.
-                                                    ELSE sistem menampilkan paket custom atau alternatif.
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-12">
-                                            <button type="submit"
-                                                    class="btn rounded-pill px-4 py-3"
-                                                    style="background-color: #8b5e3c; color: #fff; border: none; font-weight: 600;">
-                                                <i class="fa fa-check-circle me-2"></i>
-                                                Cari Rekomendasi Paket
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
                             </div>
                         </div>
+
+                        <div class="alert alert-warning rounded-4 mb-0">
+                            <strong>Catatan:</strong>
+                            <div class="small mt-1">
+                                Ukuran atau varian dicek setelah paket ditemukan, bukan sebagai rule utama.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                            Form Rekomendasi
+                        </span>
+
+                        <h3 class="fw-bold text-dark mb-2">
+                            Lengkapi Kebutuhan Acara
+                        </h3>
+
+                        <p class="text-muted mb-4">
+                            Pilih data berikut agar sistem dapat menentukan paket bundling yang paling sesuai.
+                        </p>
+
+                        <form action="{{ route('recommendation.process') }}" method="POST">
+                            @csrf
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Jenis Acara</label>
+                                    <select name="jenis_acara" id="jenis_acara" class="form-select rounded-3" required>
+                                        <option value="">-- Pilih Jenis Acara --</option>
+
+                                        @foreach($jenisAcaraList as $jenisAcara)
+                                            <option value="{{ $jenisAcara }}" {{ $selectedJenisAcara == $jenisAcara ? 'selected' : '' }}>
+                                                {{ $jenisAcara }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Kategori Adat</label>
+                                    <select name="kategori_adat" id="kategori_adat" class="form-select rounded-3" required>
+                                        <option value="">-- Pilih Kategori Adat --</option>
+
+                                        @foreach($kategoriAdatList as $kategoriAdat)
+                                            <option value="{{ $kategoriAdat }}" {{ $selectedKategoriAdat == $kategoriAdat ? 'selected' : '' }}>
+                                                {{ $kategoriAdat }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Gender</label>
+                                    <select name="gender" id="gender" class="form-select rounded-3" required>
+                                        <option value="">-- Pilih Gender --</option>
+
+                                        @foreach($genderList as $gender)
+                                            <option value="{{ $gender }}" {{ $selectedGender == $gender ? 'selected' : '' }}>
+                                                {{ $gender }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Butuh Rias?</label>
+                                    <select name="butuh_rias" id="butuh_rias" class="form-select rounded-3" required>
+                                        <option value="1" {{ $selectedButuhRias == '1' ? 'selected' : '' }}>Ya</option>
+                                        <option value="0" {{ $selectedButuhRias == '0' ? 'selected' : '' }}>Tidak</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Budget</label>
+                                    <select name="budget" id="budget" class="form-select rounded-3" required>
+                                        <option value="">-- Pilih Budget --</option>
+
+                                        @foreach($budgetList as $budget)
+                                            <option value="{{ $budget }}" {{ $selectedBudget == $budget ? 'selected' : '' }}>
+                                                {{ $budget }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <div id="rule_preview" class="alert alert-light border border-warning rounded-4 mb-0">
+                                        <i class="fa fa-circle-info me-2 text-warning"></i>
+                                        Sistem akan mencocokkan kebutuhan Anda dengan aturan rekomendasi yang tersedia.
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="alert alert-warning rounded-4 mb-0">
+                                        <strong>Aturan Sistem:</strong>
+                                        <div class="mt-2 small">
+                                            IF jenis acara, kategori adat, gender, kebutuhan rias, dan budget cocok dengan rule,
+                                            THEN sistem menampilkan paket bundling.
+                                            ELSE sistem menampilkan paket custom atau alternatif.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="submit" class="btn btn-dark rounded-pill px-4 py-3">
+                                            <i class="fa fa-check-circle me-2"></i>Cari Rekomendasi Paket
+                                        </button>
+
+                                        <a href="{{ route('catalog') }}" class="btn btn-outline-dark rounded-pill px-4 py-3">
+                                            <i class="fa fa-shirt me-2"></i>Lihat Katalog
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -243,7 +251,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 @endsection
 
 @section('script')
@@ -278,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!jenisAcara || !kategoriAdat || !gender || !budget) {
             rulePreview.innerHTML =
-                '<i class="fa fa-circle-info me-2"></i>' +
+                '<i class="fa fa-circle-info me-2 text-warning"></i>' +
                 'Sistem akan mencocokkan kebutuhan Anda dengan aturan rekomendasi yang tersedia.';
             return;
         }

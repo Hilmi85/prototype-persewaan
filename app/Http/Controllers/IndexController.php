@@ -54,6 +54,9 @@ class IndexController extends Controller
             ->when($request->filled('category_id'), function ($query) use ($request) {
                 $query->where('category_id', $request->category_id);
             })
+            ->when($request->filled('adat_category'), function ($query) use ($request) {
+                $query->where('adat_category', $request->adat_category);
+            })
             ->when($request->filled('gender'), function ($query) use ($request) {
                 $query->where(function ($subQuery) use ($request) {
                     $subQuery->where('gender', $request->gender)
@@ -80,7 +83,7 @@ class IndexController extends Controller
 
         $totalItems = $items->count();
 
-        return view('customer.catalog', compact('categories', 'catalogGroups', 'totalItems'));
+        return view('customer.catalog', compact('items', 'categories', 'catalogGroups', 'totalItems'));
     }
 
     public function accessories(Request $request)

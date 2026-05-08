@@ -111,6 +111,7 @@
 
                             <div class="bg-light border rounded-3 p-3 mt-auto mb-3">
                                 <small class="text-muted d-block mb-1">Harga</small>
+
                                 <div class="fw-bold text-dark">
                                     Rp{{ number_format($item->price, 0, ',', '.') }}
                                 </div>

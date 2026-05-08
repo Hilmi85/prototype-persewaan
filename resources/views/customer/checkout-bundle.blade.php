@@ -3,23 +3,41 @@
 @section('title', 'Checkout Paket - Quin Salon')
 
 @section('content')
-<div class="container-fluid page-header py-5 mb-5"
-     style="margin-top: -55px !important; padding-top: 170px !important; background: linear-gradient(rgba(60, 42, 33, 0.68), rgba(60, 42, 33, 0.68)), url('{{ asset('img_item_upload/indo.jpg') }}'); background-position: center center; background-repeat: no-repeat; background-size: cover;">
-    <div class="container py-5 text-center">
-        <span class="badge rounded-pill px-4 py-2 mb-3"
-              style="background-color: rgba(255,255,255,0.12); color: #f5d2a6;">
-            Checkout Paket Bundling
-        </span>
+@php
+    $bundlePrice = $bundle->price ?? $bundle->bundle_price ?? 0;
+@endphp
 
-        <h1 class="display-4 text-white fw-bold">{{ $bundle->bundle_name }}</h1>
+<section class="container-fluid page-header customer-hero py-5 mb-5">
+    <div class="container py-5">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-9">
+                <span class="badge bg-warning text-dark rounded-pill px-4 py-2 mb-3">
+                    Quin Salon • Checkout Paket Bundling
+                </span>
 
-        <p class="text-white mb-0">
-            Pilih varian item yang tersedia, lalu lengkapi data booking.
-        </p>
+                <h1 class="display-4 text-white fw-bold mb-3">
+                    {{ $bundle->bundle_name }}
+                </h1>
+
+                <p class="text-white mx-auto mb-4 max-w-760">
+                    Pilih varian item yang tersedia, lalu lengkapi data customer dan jadwal booking.
+                </p>
+
+                <div class="d-flex justify-content-center flex-wrap gap-2">
+                    <a href="#checkout-bundle-form" class="btn btn-dark rounded-pill px-4 py-3">
+                        <i class="fa fa-arrow-down me-2"></i>Isi Checkout
+                    </a>
+
+                    <a href="{{ route('bundle.show', $bundle->id) }}" class="btn btn-outline-light rounded-pill px-4 py-3">
+                        <i class="fa fa-arrow-left me-2"></i>Detail Paket
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
 
-<div class="container-fluid py-5" style="background-color: #fffaf5;">
+<section id="checkout-bundle-form" class="container-fluid py-5 bg-cream">
     <div class="container">
         @if($errors->any())
             <div class="alert alert-danger rounded-4 shadow-sm mb-4">
@@ -34,264 +52,421 @@
 
         @if(session('error'))
             <div class="alert alert-danger rounded-4 shadow-sm mb-4">
-                {{ session('error') }}
+                <i class="fa fa-circle-exclamation me-2"></i>{{ session('error') }}
             </div>
         @endif
 
         <form action="{{ route('checkout.bundle.store', $bundle->id) }}" method="POST">
             @csrf
 
-            <div class="row g-5">
+            <div class="row g-4 align-items-start">
                 <div class="col-lg-7">
-                    <div class="bg-white rounded-4 shadow-sm p-4 p-md-5 mb-4" style="border: 1px solid #f1e3d3;">
-                        <h4 class="fw-bold mb-4" style="color: #8b5e3c;">
-                            Data Customer
-                        </h4>
+                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-body p-4 p-lg-5">
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                Data Customer
+                            </span>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
-                                <input type="text" name="fullname" value="{{ old('fullname') }}" class="form-control rounded-3" required>
-                            </div>
+                            <h4 class="fw-bold text-dark mb-2">
+                                Informasi Pemesan
+                            </h4>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Nomor WhatsApp <span class="text-danger">*</span></label>
-                                <input type="text" name="phone" value="{{ old('phone') }}" class="form-control rounded-3" required>
-                            </div>
+                            <p class="text-muted mb-4">
+                                Masukkan data customer yang akan digunakan untuk konfirmasi pesanan paket.
+                            </p>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Email</label>
-                                <input type="email" name="email" value="{{ old('email') }}" class="form-control rounded-3">
-                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Nama Lengkap <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text"
+                                           name="fullname"
+                                           value="{{ old('fullname') }}"
+                                           class="form-control rounded-3"
+                                           placeholder="Masukkan nama lengkap"
+                                           required>
+                                </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Gender</label>
-                                <select name="gender" class="form-select rounded-3">
-                                    <option value="">Pilih Gender</option>
-                                    <option value="Laki-laki" {{ old('gender', $bundle->gender) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                    <option value="Perempuan" {{ old('gender', $bundle->gender) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                                    <option value="Unisex" {{ old('gender', $bundle->gender) == 'Unisex' ? 'selected' : '' }}>Unisex</option>
-                                </select>
-                            </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Nomor WhatsApp <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text"
+                                           name="phone"
+                                           value="{{ old('phone') }}"
+                                           class="form-control rounded-3"
+                                           placeholder="Contoh: 08123456789"
+                                           required>
+                                </div>
 
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-semibold">Alamat</label>
-                                <textarea name="address" class="form-control rounded-3" rows="3">{{ old('address') }}</textarea>
-                            </div>
-                        </div>
-                    </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Email
+                                    </label>
+                                    <input type="email"
+                                           name="email"
+                                           value="{{ old('email') }}"
+                                           class="form-control rounded-3"
+                                           placeholder="nama@email.com">
+                                </div>
 
-                    <div class="bg-white rounded-4 shadow-sm p-4 p-md-5 mb-4" style="border: 1px solid #f1e3d3;">
-                        <h4 class="fw-bold mb-4" style="color: #8b5e3c;">
-                            Data Acara dan Booking
-                        </h4>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Gender
+                                    </label>
+                                    <select name="gender" class="form-select rounded-3">
+                                        <option value="">Pilih Gender</option>
+                                        <option value="Laki-laki" {{ old('gender', $bundle->gender) == 'Laki-laki' ? 'selected' : '' }}>
+                                            Laki-laki
+                                        </option>
+                                        <option value="Perempuan" {{ old('gender', $bundle->gender) == 'Perempuan' ? 'selected' : '' }}>
+                                            Perempuan
+                                        </option>
+                                        <option value="Unisex" {{ old('gender', $bundle->gender) == 'Unisex' ? 'selected' : '' }}>
+                                            Unisex
+                                        </option>
+                                    </select>
+                                </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Jenis Acara</label>
-                                <input type="text" name="jenis_acara" value="{{ old('jenis_acara', $bundle->jenis_acara) }}" class="form-control rounded-3">
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Kategori Adat</label>
-                                <input type="text" name="kategori_adat" value="{{ old('kategori_adat', $bundle->kategori_adat) }}" class="form-control rounded-3">
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Budget</label>
-                                <select name="budget" class="form-select rounded-3">
-                                    <option value="">Pilih Budget</option>
-                                    <option value="Rendah" {{ old('budget', $bundle->budget_category) == 'Rendah' ? 'selected' : '' }}>Rendah</option>
-                                    <option value="Sedang" {{ old('budget', $bundle->budget_category) == 'Sedang' ? 'selected' : '' }}>Sedang</option>
-                                    <option value="Tinggi" {{ old('budget', $bundle->budget_category) == 'Tinggi' ? 'selected' : '' }}>Tinggi</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Butuh Rias? <span class="text-danger">*</span></label>
-                                <select name="butuh_rias" class="form-select rounded-3" required>
-                                    <option value="1" {{ old('butuh_rias', $bundle->butuh_rias ? '1' : '0') == '1' ? 'selected' : '' }}>Ya</option>
-                                    <option value="0" {{ old('butuh_rias', $bundle->butuh_rias ? '1' : '0') == '0' ? 'selected' : '' }}>Tidak</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Tanggal Acara <span class="text-danger">*</span></label>
-                                <input type="date" name="event_date" value="{{ old('event_date') }}" class="form-control rounded-3" required>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Mulai Sewa <span class="text-danger">*</span></label>
-                                <input type="date" name="rental_start" value="{{ old('rental_start') }}" class="form-control rounded-3" required>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">Selesai Sewa <span class="text-danger">*</span></label>
-                                <input type="date" name="rental_end" value="{{ old('rental_end') }}" class="form-control rounded-3" required>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Tanggal Rias</label>
-                                <input type="date" name="makeup_date" value="{{ old('makeup_date') }}" class="form-control rounded-3">
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">Metode Pembayaran <span class="text-danger">*</span></label>
-                                <select name="payment_method" class="form-select rounded-3" required>
-                                    <option value="tunai" {{ old('payment_method', 'tunai') == 'tunai' ? 'selected' : '' }}>Tunai / Cash</option>
-                                    <option value="qris" {{ old('payment_method') == 'qris' ? 'selected' : '' }}>QRIS Midtrans</option>
-                                </select>
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-semibold">Catatan</label>
-                                <textarea name="notes" class="form-control rounded-3" rows="3">{{ old('notes') }}</textarea>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">
+                                        Alamat
+                                    </label>
+                                    <textarea name="address"
+                                              class="form-control rounded-3"
+                                              rows="3"
+                                              placeholder="Masukkan alamat lengkap">{{ old('address') }}</textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-4 shadow-sm p-4 p-md-5" style="border: 1px solid #f1e3d3;">
-                        <h4 class="fw-bold mb-3" style="color: #8b5e3c;">
-                            Pilih Varian Item Paket
-                        </h4>
+                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-body p-4 p-lg-5">
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                Data Acara & Booking
+                            </span>
 
-                        <div class="alert alert-light border rounded-4">
-                            Varian dipilih saat checkout agar bundle tetap fleksibel dan tidak terkunci pada satu ukuran.
+                            <h4 class="fw-bold text-dark mb-2">
+                                Jadwal Pemakaian
+                            </h4>
+
+                            <p class="text-muted mb-4">
+                                Lengkapi detail acara agar admin dapat memvalidasi jadwal sewa dan rias.
+                            </p>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Jenis Acara
+                                    </label>
+                                    <input type="text"
+                                           name="jenis_acara"
+                                           value="{{ old('jenis_acara', $bundle->jenis_acara) }}"
+                                           class="form-control rounded-3"
+                                           placeholder="Pernikahan, Lamaran, Wisuda">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Kategori Adat
+                                    </label>
+                                    <input type="text"
+                                           name="kategori_adat"
+                                           value="{{ old('kategori_adat', $bundle->kategori_adat) }}"
+                                           class="form-control rounded-3"
+                                           placeholder="Jawa, Sunda, Bali">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Budget
+                                    </label>
+                                    <select name="budget" class="form-select rounded-3">
+                                        <option value="">Pilih Budget</option>
+                                        <option value="Rendah" {{ old('budget', $bundle->budget_category) == 'Rendah' ? 'selected' : '' }}>
+                                            Rendah
+                                        </option>
+                                        <option value="Sedang" {{ old('budget', $bundle->budget_category) == 'Sedang' ? 'selected' : '' }}>
+                                            Sedang
+                                        </option>
+                                        <option value="Tinggi" {{ old('budget', $bundle->budget_category) == 'Tinggi' ? 'selected' : '' }}>
+                                            Tinggi
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Butuh Rias? <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="butuh_rias" class="form-select rounded-3" required>
+                                        <option value="1" {{ old('butuh_rias', $bundle->butuh_rias ? '1' : '0') == '1' ? 'selected' : '' }}>
+                                            Ya
+                                        </option>
+                                        <option value="0" {{ old('butuh_rias', $bundle->butuh_rias ? '1' : '0') == '0' ? 'selected' : '' }}>
+                                            Tidak
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        Tanggal Acara <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date"
+                                           name="event_date"
+                                           value="{{ old('event_date') }}"
+                                           class="form-control rounded-3"
+                                           required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        Mulai Sewa <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date"
+                                           name="rental_start"
+                                           value="{{ old('rental_start') }}"
+                                           class="form-control rounded-3"
+                                           required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        Selesai Sewa <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date"
+                                           name="rental_end"
+                                           value="{{ old('rental_end') }}"
+                                           class="form-control rounded-3"
+                                           required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Tanggal Rias
+                                    </label>
+                                    <input type="date"
+                                           name="makeup_date"
+                                           value="{{ old('makeup_date') }}"
+                                           class="form-control rounded-3">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        Metode Pembayaran <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="payment_method" class="form-select rounded-3" required>
+                                        <option value="tunai" {{ old('payment_method', 'tunai') == 'tunai' ? 'selected' : '' }}>
+                                            Tunai / Cash
+                                        </option>
+                                        <option value="qris" {{ old('payment_method') == 'qris' ? 'selected' : '' }}>
+                                            QRIS Midtrans
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">
+                                        Catatan
+                                    </label>
+                                    <textarea name="notes"
+                                              class="form-control rounded-3"
+                                              rows="3"
+                                              placeholder="Tambahkan catatan khusus jika ada">{{ old('notes') }}</textarea>
+                                </div>
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-bordered align-middle mb-0">
-                                <thead style="background-color: #fff7ef;">
-                                    <tr>
-                                        <th>Item</th>
-                                        <th>Qty</th>
-                                        <th>Varian</th>
-                                    </tr>
-                                </thead>
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4 p-lg-5">
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                Pilih Varian Item Paket
+                            </span>
 
-                                <tbody>
-                                    @foreach($bundle->bundleItems as $bundleItem)
-                                        @php
-                                            $item = $bundleItem->item;
-                                            $availableVariants = $item
-                                                ? $item->itemVariants->where('is_active', true)->where('available_stock', '>', 0)
-                                                : collect();
-                                        @endphp
+                            <h4 class="fw-bold text-dark mb-2">
+                                Varian Item Paket
+                            </h4>
 
+                            <p class="text-muted mb-4">
+                                Pilih varian untuk item yang membutuhkan ukuran atau warna.
+                                Layanan rias tidak perlu memilih varian.
+                            </p>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover align-middle mb-0">
+                                    <thead class="table-light">
                                         <tr>
-                                            <td>
-                                                <div class="fw-semibold">{{ $item->name ?? '-' }}</div>
-                                                <small class="text-muted">
-                                                    {{ $item->category->cat_name ?? '-' }}
-                                                    @if($item?->item_type)
-                                                        • {{ str_replace('_', ' ', $item->item_type) }}
-                                                    @endif
-                                                </small>
-                                            </td>
-
-                                            <td>{{ $bundleItem->quantity }}</td>
-
-                                            <td>
-                                                @if($item && $item->item_type === 'jasa_rias')
-                                                    <span class="badge bg-primary">Layanan rias, tanpa varian</span>
-                                                @elseif($availableVariants->count())
-                                                    <select name="bundle_variants[{{ $item->id }}]" class="form-select rounded-3" required>
-                                                        <option value="">Pilih Varian</option>
-
-                                                        @foreach($availableVariants as $variant)
-                                                            <option value="{{ $variant->id }}"
-                                                                    {{ old("bundle_variants.{$item->id}") == $variant->id ? 'selected' : '' }}>
-                                                                {{ $variant->size ?? '-' }}
-                                                                @if($variant->color)
-                                                                    / {{ $variant->color }}
-                                                                @endif
-                                                                • Stok {{ $variant->available_stock }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                @else
-                                                    <span class="badge bg-warning text-dark">
-                                                        Varian belum tersedia
-                                                    </span>
-                                                @endif
-                                            </td>
+                                            <th>Item</th>
+                                            <th>Qty</th>
+                                            <th>Varian</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+
+                                    <tbody>
+                                        @foreach($bundle->bundleItems as $bundleItem)
+                                            @php
+                                                $item = $bundleItem->item;
+                                                $availableVariants = $item
+                                                    ? $item->itemVariants->where('is_active', true)->where('available_stock', '>', 0)
+                                                    : collect();
+                                            @endphp
+
+                                            <tr>
+                                                <td>
+                                                    <div class="fw-semibold text-dark">
+                                                        {{ $item->name ?? '-' }}
+                                                    </div>
+
+                                                    <small class="text-muted">
+                                                        {{ $item->category->cat_name ?? '-' }}
+
+                                                        @if($item?->item_type)
+                                                            • {{ str_replace('_', ' ', $item->item_type) }}
+                                                        @endif
+                                                    </small>
+                                                </td>
+
+                                                <td>
+                                                    {{ $bundleItem->quantity }}
+                                                </td>
+
+                                                <td>
+                                                    @if($item && $item->item_type === 'jasa_rias')
+                                                        <span class="badge bg-primary rounded-pill">
+                                                            Layanan rias, tanpa varian
+                                                        </span>
+                                                    @elseif($availableVariants->count())
+                                                        <select name="bundle_variants[{{ $item->id }}]" class="form-select rounded-3" required>
+                                                            <option value="">Pilih Varian</option>
+
+                                                            @foreach($availableVariants as $variant)
+                                                                <option value="{{ $variant->id }}"
+                                                                        {{ old("bundle_variants.{$item->id}") == $variant->id ? 'selected' : '' }}>
+                                                                    {{ $variant->size ?? '-' }}
+                                                                    @if($variant->color)
+                                                                        / {{ $variant->color }}
+                                                                    @endif
+                                                                    • Stok {{ $variant->available_stock }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    @else
+                                                        <span class="badge bg-warning text-dark rounded-pill">
+                                                            Varian belum tersedia
+                                                        </span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="alert alert-warning rounded-4 mt-4 mb-0">
+                                <strong>Catatan:</strong>
+                                <div class="small mt-1">
+                                    Jika varian belum tersedia, admin perlu melakukan konfirmasi stok sebelum pesanan diproses.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-5">
-                    <div class="bg-white rounded-4 shadow-sm p-4 position-sticky" style="top: 100px; border: 1px solid #f1e3d3;">
-                        <span class="badge rounded-pill px-3 py-2 mb-3"
-                              style="background-color: #fff7ef; color: #8b5e3c; border: 1px solid #f0dfcf;">
-                            {{ $bundle->is_custom ? 'Paket Custom' : 'Paket Rekomendasi' }}
-                        </span>
+                    <div class="card border-0 shadow-sm rounded-4 sticky-summary">
+                        <div class="card-body p-4">
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                {{ $bundle->is_custom ? 'Paket Custom' : 'Paket Rekomendasi' }}
+                            </span>
 
-                        <h4 class="fw-bold mb-2" style="color: #3c2a21;">
-                            {{ $bundle->bundle_name }}
-                        </h4>
+                            <h4 class="fw-bold text-dark mb-2">
+                                {{ $bundle->bundle_name }}
+                            </h4>
 
-                        <p class="text-muted">
-                            {{ $bundle->description ?: 'Paket bundling sesuai kebutuhan customer.' }}
-                        </p>
+                            <p class="text-muted">
+                                {{ $bundle->description ?: 'Paket bundling sesuai kebutuhan customer.' }}
+                            </p>
 
-                        <div class="mb-4">
-                            @foreach($bundle->bundleItems as $bundleItem)
-                                <div class="d-flex justify-content-between gap-3 mb-3 pb-3 border-bottom">
-                                    <div>
-                                        <div class="fw-semibold">{{ $bundleItem->item->name ?? '-' }}</div>
-                                        <small class="text-muted">Qty: {{ $bundleItem->quantity }}</small>
+                            <div class="border rounded-4 bg-light p-3 mb-4">
+                                @foreach($bundle->bundleItems as $bundleItem)
+                                    <div class="d-flex justify-content-between gap-3 mb-3 pb-3 border-bottom">
+                                        <div>
+                                            <div class="fw-semibold text-dark">
+                                                {{ $bundleItem->item->name ?? '-' }}
+                                            </div>
+
+                                            <small class="text-muted">
+                                                Qty: {{ $bundleItem->quantity }}
+                                            </small>
+                                        </div>
                                     </div>
+                                @endforeach
+                            </div>
+
+                            <div class="border border-warning rounded-4 bg-light p-3 mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Harga Paket</span>
+                                    <strong class="text-dark">
+                                        Rp{{ number_format($bundlePrice, 0, ',', '.') }}
+                                    </strong>
                                 </div>
-                            @endforeach
-                        </div>
 
-                        <div class="p-3 rounded-4" style="background-color: #fff7ef; border: 1px solid #f0dfcf;">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Harga Paket</span>
-                                <strong>Rp{{ number_format($bundle->price, 0, ',', '.') }}</strong>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Pajak</span>
+                                    <strong class="text-dark">
+                                        Rp0
+                                    </strong>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong class="text-dark">Total</strong>
+                                    <strong class="fs-4 text-dark">
+                                        Rp{{ number_format($bundlePrice, 0, ',', '.') }}
+                                    </strong>
+                                </div>
                             </div>
 
-                            <div class="d-flex justify-content-between">
-                                <span>Pajak</span>
-                                <strong>Rp0</strong>
+                            <div class="alert alert-warning rounded-4 mb-4">
+                                <small>
+                                    Setelah pesanan dibuat, sistem akan menyimpan order, booking, dan pembayaran paket.
+                                </small>
                             </div>
 
-                            <hr>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-dark rounded-pill py-3">
+                                    <i class="fa fa-check-circle me-2"></i>Buat Pesanan Paket
+                                </button>
 
-                            <div class="d-flex justify-content-between align-items-center">
-                                <strong>Total</strong>
-                                <strong class="fs-4" style="color: #8b5e3c;">
-                                    Rp{{ number_format($bundle->price, 0, ',', '.') }}
-                                </strong>
-                            </div>
-                        </div>
-
-                        <button type="submit"
-                                class="btn rounded-pill w-100 py-3 mt-4"
-                                style="background-color: #8b5e3c; color: #fff;">
-                            <i class="fa fa-check-circle me-2"></i>Buat Pesanan Paket
-                        </button>
-
-                        <a href="{{ route('bundle.show', $bundle->id) }}" class="btn btn-outline-secondary rounded-pill w-100 py-3 mt-2">
-                            Kembali ke Detail Paket
-                        </a>
-
-                        @if($contact)
-                            <div class="mt-4 small text-muted text-center">
-                                Butuh bantuan?
-                                <a href="{{ $contact->whatsapp_url }}" target="_blank" style="color: #8b5e3c;">
-                                    Hubungi {{ $contact->contact_name }}
+                                <a href="{{ route('bundle.show', $bundle->id) }}" class="btn btn-outline-dark rounded-pill py-3">
+                                    <i class="fa fa-arrow-left me-2"></i>Kembali ke Detail Paket
                                 </a>
                             </div>
-                        @endif
+
+                            @isset($contact)
+                                @if($contact)
+                                    <div class="alert alert-warning rounded-4 mt-4 mb-0 text-center">
+                                        <small>
+                                            Butuh bantuan?
+                                            <a href="{{ $contact->whatsapp_url }}"
+                                               target="_blank"
+                                               class="fw-semibold text-dark">
+                                                Hubungi {{ $contact->contact_name }}
+                                            </a>
+                                        </small>
+                                    </div>
+                                @endif
+                            @endisset
+                        </div>
                     </div>
                 </div>
             </div>
         </form>
     </div>
-</div>
+</section>
 @endsection

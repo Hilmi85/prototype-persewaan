@@ -4,23 +4,12 @@
 
 @section('content')
 @php
-    $heroItem = $featuredItems->first();
-
-    $heroImage = $heroItem && $heroItem->img
-        ? asset('img_item_upload/' . $heroItem->img)
-        : asset('img_item_upload/indo.jpg');
-
     $previewBundles = $featuredBundles->take(2);
 @endphp
 
-<section class="container-fluid bg-dark position-relative overflow-hidden mt-5 pt-5 pb-5">
-    <img src="{{ $heroImage }}"
-         class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-50"
-         alt="Quin Salon"
-         onerror="this.onerror=null;this.src='{{ asset('img_item_upload/indo.jpg') }}';">
-
-    <div class="container position-relative py-5">
-        <div class="row justify-content-center text-center py-lg-5">
+<section class="container-fluid page-header customer-hero py-5 mb-5">
+    <div class="container py-5">
+        <div class="row justify-content-center text-center">
             <div class="col-lg-9">
                 <span class="badge bg-warning text-dark rounded-pill px-4 py-2 mb-3">
                     Quin Salon • Baju Adat & Jasa Rias

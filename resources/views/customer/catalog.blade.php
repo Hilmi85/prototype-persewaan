@@ -4,7 +4,28 @@
 
 @section('content')
 @php
-    $sections = collect($catalogGroups ?? []);
+    $rawItems = isset($items)
+        ? collect(method_exists($items, 'items') ? $items->items() : $items)
+        : collect();
+
+    $fallbackGroups = $rawItems
+        ->where('item_type', 'baju_adat')
+        ->values()
+        ->groupBy(function ($item) {
+            return $item->category->cat_name
+                ?? ($item->adat_category ? 'Baju Adat ' . $item->adat_category : 'Baju Adat Lainnya');
+        })
+        ->map(function ($groupItems, $groupName) {
+            return [
+                'label' => $groupName,
+                'description' => 'Pilihan koleksi ' . strtolower($groupName) . ' yang tersedia di Quin Salon.',
+                'items' => $groupItems->values(),
+            ];
+        })
+        ->values();
+
+    $sections = isset($catalogGroups) ? collect($catalogGroups) : $fallbackGroups;
+    $displayTotal = $totalItems ?? $rawItems->where('item_type', 'baju_adat')->count();
 @endphp
 
 <section class="container-fluid page-header customer-hero py-5 mb-5">
@@ -20,8 +41,8 @@
                 </h1>
 
                 <p class="text-white mx-auto mb-4 max-w-760">
-                    Koleksi baju adat ditampilkan berdasarkan kategori agar pelanggan lebih mudah
-                    menemukan pilihan yang sesuai dengan kebutuhan acara.
+                    Koleksi baju adat ditampilkan dalam format collection boutique agar pelanggan
+                    lebih mudah melihat pilihan utama dan koleksi lainnya secara elegan.
                 </p>
 
                 <div class="d-flex justify-content-center flex-wrap gap-2">
@@ -81,6 +102,7 @@
                                         <span class="input-group-text bg-white">
                                             <i class="fa fa-search text-muted"></i>
                                         </span>
+
                                         <input type="text"
                                                name="keyword"
                                                value="{{ request('keyword') }}"
@@ -105,16 +127,22 @@
                                     <label class="form-label fw-semibold">Gender</label>
                                     <select name="gender" class="form-select">
                                         <option value="">Semua</option>
-                                        <option value="Laki-laki" {{ request('gender') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                        <option value="Perempuan" {{ request('gender') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                                        <option value="Unisex" {{ request('gender') == 'Unisex' ? 'selected' : '' }}>Unisex</option>
+                                        <option value="Laki-laki" {{ request('gender') == 'Laki-laki' ? 'selected' : '' }}>
+                                            Laki-laki
+                                        </option>
+                                        <option value="Perempuan" {{ request('gender') == 'Perempuan' ? 'selected' : '' }}>
+                                            Perempuan
+                                        </option>
+                                        <option value="Unisex" {{ request('gender') == 'Unisex' ? 'selected' : '' }}>
+                                            Unisex
+                                        </option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-2">
                                     <label class="form-label d-none d-md-block">&nbsp;</label>
                                     <button class="btn btn-dark w-100">
-                                        Filter
+                                        <i class="fa fa-search me-1"></i>Filter
                                     </button>
                                 </div>
 
@@ -122,10 +150,6 @@
                                     <div class="d-flex flex-wrap gap-2">
                                         <a href="{{ route('catalog') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
                                             <i class="fa fa-rotate-left me-1"></i>Reset
-                                        </a>
-
-                                        <a href="{{ route('accessories.index') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
-                                            <i class="fa fa-crown me-1"></i>Aksesoris
                                         </a>
 
                                         <a href="{{ route('rias.index') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
@@ -144,133 +168,312 @@
             </div>
         </div>
 
-        @if(($totalItems ?? 0) > 0)
+        @if($displayTotal > 0)
             <div class="row g-3 align-items-center mb-4">
-                <div class="col-lg-5">
-                    <h5 class="fw-bold text-dark mb-1">
-                        {{ $totalItems }} Baju Adat Ditemukan
-                    </h5>
+                <div class="col-lg-6">
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                        Luxury Collection
+                    </span>
+
+                    <h4 class="fw-bold text-dark mb-1">
+                        {{ $displayTotal }} Baju Adat Ditemukan
+                    </h4>
 
                     <p class="text-muted mb-0">
-                        Produk dipisahkan berdasarkan kategori agar tampilan katalog lebih rapi.
+                        Pilih collection di bawah untuk melihat item unggulan dan pilihan lainnya.
                     </p>
                 </div>
 
-                <div class="col-lg-7">
-                    <div class="d-flex flex-wrap justify-content-lg-end gap-2">
-                        @foreach($sections as $group)
-                            <a href="#section-{{ \Illuminate\Support\Str::slug($group['label']) }}"
-                               class="btn btn-outline-dark btn-sm rounded-pill px-3">
-                                {{ $group['label'] }}
-                            </a>
-                        @endforeach
-                    </div>
+                <div class="col-lg-6 text-lg-end">
+                    <span class="badge bg-dark rounded-pill px-3 py-2">
+                        {{ $sections->count() }} collection tersedia
+                    </span>
                 </div>
             </div>
         @endif
 
-        @forelse($sections as $group)
-            <section id="section-{{ \Illuminate\Support\Str::slug($group['label']) }}" class="mb-5">
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-body p-4">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-lg">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 p-3">
-                                        <i class="fa fa-shirt"></i>
-                                    </div>
+        @if($sections->count())
+            <div class="accordion" id="catalogLuxuryAccordion">
+                @foreach($sections as $group)
+                    @php
+                        $sectionItems = collect($group['items']);
+                        $highlightItem = $sectionItems->first();
+                        $otherItems = $sectionItems->slice(1)->values();
 
-                                    <div>
-                                        <h3 class="fw-bold text-dark mb-1">
-                                            {{ $group['label'] }}
-                                        </h3>
+                        $accordionId = 'collection-' . \Illuminate\Support\Str::slug($group['label']);
+                        $headingId = 'heading-' . \Illuminate\Support\Str::slug($group['label']);
+                        $collapseId = 'collapse-' . \Illuminate\Support\Str::slug($group['label']);
 
-                                        <p class="text-muted mb-0">
-                                            {{ $group['description'] }}
-                                        </p>
+                        $highlightVariants = $highlightItem
+                            ? $highlightItem->itemVariants
+                                ->where('is_active', true)
+                                ->where('available_stock', '>', 0)
+                            : collect();
+                    @endphp
+
+                    <div class="accordion-item border-0 shadow-sm rounded-4 overflow-hidden mb-4" id="{{ $accordionId }}">
+                        <h2 class="accordion-header" id="{{ $headingId }}">
+                            <button class="accordion-button {{ $loop->first ? '' : 'collapsed' }} bg-white shadow-none p-4"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#{{ $collapseId }}"
+                                    aria-expanded="{{ $loop->first ? 'true' : 'false' }}"
+                                    aria-controls="{{ $collapseId }}">
+                                <div class="w-100">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-lg">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 p-3">
+                                                    <i class="fa fa-shirt"></i>
+                                                </div>
+
+                                                <div>
+                                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-2">
+                                                        Collection {{ $loop->iteration }}
+                                                    </span>
+
+                                                    <h3 class="fw-bold text-dark mb-1">
+                                                        {{ $group['label'] }}
+                                                    </h3>
+
+                                                    <p class="text-muted mb-0">
+                                                        {{ $group['description'] }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-auto text-lg-end">
+                                            <span class="badge bg-dark rounded-pill px-3 py-2">
+                                                {{ $sectionItems->count() }} item
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
+                        </h2>
 
-                            <div class="col-lg-auto">
-                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
-                                    {{ $group['items']->count() }} item
-                                </span>
+                        <div id="{{ $collapseId }}"
+                             class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}"
+                             aria-labelledby="{{ $headingId }}"
+                             data-bs-parent="#catalogLuxuryAccordion">
+                            <div class="accordion-body bg-light p-4 p-lg-5">
+                                @if($highlightItem)
+                                    <div class="row g-4 align-items-stretch">
+                                        <div class="col-lg-6">
+                                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                                                <div class="position-relative">
+                                                    <div class="ratio ratio-1x1 bg-light overflow-hidden">
+                                                        <img src="{{ asset('img_item_upload/' . ($highlightItem->img ?? 'default.jpg')) }}"
+                                                             class="w-100 h-100 object-fit-cover"
+                                                             alt="{{ $highlightItem->name }}"
+                                                             onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
+                                                    </div>
+
+                                                    <div class="position-absolute top-0 start-0 m-3">
+                                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                                            Signature Look
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="position-absolute bottom-0 start-0 end-0 p-4 bg-dark bg-opacity-75">
+                                                        <div class="d-flex justify-content-between align-items-end gap-3">
+                                                            <div>
+                                                                <small class="text-white-50 d-block mb-1">
+                                                                    Highlight Collection
+                                                                </small>
+
+                                                                <h3 class="fw-bold text-white mb-0">
+                                                                    {{ $highlightItem->name }}
+                                                                </h3>
+                                                            </div>
+
+                                                            <span class="badge bg-light text-dark rounded-pill px-3 py-2">
+                                                                {{ $highlightItem->category->cat_name ?? 'Baju Adat' }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="card-body p-4 p-lg-5">
+                                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                                        @if($highlightItem->gender)
+                                                            <span class="badge bg-light text-dark border rounded-pill">
+                                                                {{ $highlightItem->gender }}
+                                                            </span>
+                                                        @endif
+
+                                                        @if($highlightVariants->count())
+                                                            <span class="badge bg-success rounded-pill">
+                                                                {{ $highlightVariants->count() }} varian tersedia
+                                                            </span>
+                                                        @else
+                                                            <span class="badge bg-warning text-dark rounded-pill">
+                                                                Konfirmasi stok
+                                                            </span>
+                                                        @endif
+                                                    </div>
+
+                                                    <p class="text-muted mb-4">
+                                                        {{ \Illuminate\Support\Str::limit($highlightItem->description, 180) }}
+                                                    </p>
+
+                                                    <div class="border border-warning rounded-4 bg-light p-3 mb-4">
+                                                        <small class="text-muted d-block mb-1">
+                                                            Mulai dari
+                                                        </small>
+
+                                                        <div class="fw-bold fs-4 text-dark">
+                                                            Rp{{ number_format($highlightItem->price, 0, ',', '.') }}
+                                                        </div>
+                                                    </div>
+
+                                                    <a href="{{ route('catalog.show', $highlightItem->id) }}" class="btn btn-dark rounded-pill px-4 py-3">
+                                                        <i class="fa fa-eye me-2"></i>Lihat Detail Signature Look
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-6">
+                                            <div class="card border-0 shadow-sm rounded-4 h-100">
+                                                <div class="card-body p-4 p-lg-5">
+                                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+                                                        <div>
+                                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                                                More Looks
+                                                            </span>
+
+                                                            <h4 class="fw-bold text-dark mb-2">
+                                                                Pilihan Lainnya
+                                                            </h4>
+
+                                                            <p class="text-muted mb-0">
+                                                                Koleksi lain dari kategori {{ $group['label'] }} yang bisa dipilih pelanggan.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    @if($otherItems->count())
+                                                        <div class="vstack gap-3">
+                                                            @foreach($otherItems as $item)
+                                                                @php
+                                                                    $availableVariants = $item->itemVariants
+                                                                        ->where('is_active', true)
+                                                                        ->where('available_stock', '>', 0);
+                                                                @endphp
+
+                                                                <div class="card border rounded-4 shadow-sm overflow-hidden">
+                                                                    <div class="row g-0 align-items-stretch">
+                                                                        <div class="col-4">
+                                                                            <div class="ratio ratio-1x1 bg-light h-100">
+                                                                                <img src="{{ asset('img_item_upload/' . ($item->img ?? 'default.jpg')) }}"
+                                                                                     class="w-100 h-100 object-fit-cover"
+                                                                                     alt="{{ $item->name }}"
+                                                                                     onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="col-8">
+                                                                            <div class="card-body p-3 p-md-4 h-100 d-flex flex-column">
+                                                                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                                                                    <span class="badge bg-dark rounded-pill">
+                                                                                        {{ $item->category->cat_name ?? 'Baju Adat' }}
+                                                                                    </span>
+
+                                                                                    @if($item->gender)
+                                                                                        <span class="badge bg-light text-dark border rounded-pill">
+                                                                                            {{ $item->gender }}
+                                                                                        </span>
+                                                                                    @endif
+
+                                                                                    @if($availableVariants->count())
+                                                                                        <span class="badge bg-success rounded-pill">
+                                                                                            {{ $availableVariants->count() }} varian
+                                                                                        </span>
+                                                                                    @else
+                                                                                        <span class="badge bg-warning text-dark rounded-pill">
+                                                                                            Konfirmasi stok
+                                                                                        </span>
+                                                                                    @endif
+                                                                                </div>
+
+                                                                                <h5 class="fw-bold text-dark mb-2">
+                                                                                    {{ \Illuminate\Support\Str::limit($item->name, 48) }}
+                                                                                </h5>
+
+                                                                                <p class="text-muted small mb-3">
+                                                                                    {{ \Illuminate\Support\Str::limit($item->description, 75) }}
+                                                                                </p>
+
+                                                                                <div class="d-flex justify-content-between align-items-center gap-3 mt-auto">
+                                                                                    <div>
+                                                                                        <small class="text-muted d-block">
+                                                                                            Mulai dari
+                                                                                        </small>
+
+                                                                                        <strong class="text-dark">
+                                                                                            Rp{{ number_format($item->price, 0, ',', '.') }}
+                                                                                        </strong>
+                                                                                    </div>
+
+                                                                                    <a href="{{ route('catalog.show', $item->id) }}"
+                                                                                       class="btn btn-outline-dark btn-sm rounded-pill px-3">
+                                                                                        Detail
+                                                                                    </a>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        <div class="text-center py-5">
+                                                            <div class="display-5 text-muted mb-3">
+                                                                <i class="fa fa-shirt"></i>
+                                                            </div>
+
+                                                            <h5 class="fw-bold text-dark mb-2">
+                                                                Hanya Ada Satu Koleksi
+                                                            </h5>
+
+                                                            <p class="text-muted mb-4">
+                                                                Kategori ini masih memiliki satu koleksi utama.
+                                                            </p>
+
+                                                            <a href="{{ route('catalog.show', $highlightItem->id) }}" class="btn btn-outline-dark rounded-pill px-4">
+                                                                Lihat Detail
+                                                            </a>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="card border-0 shadow-sm rounded-4">
+                                        <div class="card-body text-center p-5">
+                                            <div class="display-5 text-muted mb-3">
+                                                <i class="fa fa-box-open"></i>
+                                            </div>
+
+                                            <h4 class="fw-bold text-dark mb-2">
+                                                Koleksi belum tersedia
+                                            </h4>
+
+                                            <p class="text-muted mb-0">
+                                                Belum ada item pada collection ini.
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="row g-4">
-                    @foreach($group['items'] as $item)
-                        @php
-                            $availableVariants = $item->itemVariants
-                                ->where('is_active', true)
-                                ->where('available_stock', '>', 0);
-                        @endphp
-
-                        <div class="col-sm-6 col-lg-4 col-xl-3">
-                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
-                                <div class="ratio ratio-3x4 bg-light border-bottom overflow-hidden">
-                                    <img src="{{ asset('img_item_upload/' . ($item->img ?? 'default.jpg')) }}"
-                                         class="w-100 h-100 object-fit-contain p-2"
-                                         alt="{{ $item->name }}"
-                                         onerror="this.onerror=null;this.src='{{ asset('img_item_upload/default.jpg') }}';">
-                                </div>
-
-                                <div class="card-body d-flex flex-column p-4">
-                                    <div class="d-flex flex-wrap gap-2 mb-3">
-                                        <span class="badge bg-dark rounded-pill">
-                                            {{ $item->category->cat_name ?? 'Baju Adat' }}
-                                        </span>
-
-                                        @if($item->gender)
-                                            <span class="badge bg-light text-dark border rounded-pill">
-                                                {{ $item->gender }}
-                                            </span>
-                                        @endif
-
-                                        @if($availableVariants->count())
-                                            <span class="badge bg-success rounded-pill">
-                                                {{ $availableVariants->count() }} varian
-                                            </span>
-                                        @else
-                                            <span class="badge bg-warning text-dark rounded-pill">
-                                                Konfirmasi stok
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    <h5 class="fw-bold text-dark mb-2">
-                                        {{ \Illuminate\Support\Str::limit($item->name, 46) }}
-                                    </h5>
-
-                                    <p class="text-muted small mb-3">
-                                        {{ \Illuminate\Support\Str::limit($item->description, 86) }}
-                                    </p>
-
-                                    <div class="bg-light border rounded-3 p-3 mt-auto mb-3">
-                                        <small class="text-muted d-block mb-1">Mulai dari</small>
-
-                                        <div class="fw-bold text-dark">
-                                            Rp{{ number_format($item->price, 0, ',', '.') }}
-                                        </div>
-                                    </div>
-
-                                    <div class="row g-2 justify-content-end">
-                                        <div class="col-7">
-                                            <a href="{{ route('catalog.show', $item->id) }}" class="btn btn-outline-dark w-100 rounded-pill">
-                                                <i class="fa fa-eye me-1"></i>Detail
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </section>
-        @empty
+                @endforeach
+            </div>
+        @else
             <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body text-center p-5">
                     <div class="display-5 text-muted mb-3">
@@ -290,7 +493,7 @@
                     </a>
                 </div>
             </div>
-        @endforelse
+        @endif
     </div>
 </section>
 @endsection
