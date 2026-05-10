@@ -8,6 +8,7 @@
 
     $rentalTermsService = app(\App\Services\RentalTermsService::class);
     $rentalTerms = $rentalTermsService->rules();
+    $todayDate = now()->toDateString();
 @endphp
 
 <section class="container-fluid page-header customer-hero py-5 mb-5">
@@ -221,6 +222,7 @@
                                     <input type="date"
                                            name="event_date"
                                            value="{{ old('event_date') }}"
+                                           min="{{ $todayDate }}"
                                            class="form-control rounded-3"
                                            required>
                                 </div>
@@ -232,6 +234,7 @@
                                     <input type="date"
                                            name="rental_start"
                                            value="{{ old('rental_start') }}"
+                                           min="{{ $todayDate }}"
                                            class="form-control rounded-3"
                                            required>
                                 </div>
@@ -243,6 +246,7 @@
                                     <input type="date"
                                            name="rental_end"
                                            value="{{ old('rental_end') }}"
+                                           min="{{ $todayDate }}"
                                            class="form-control rounded-3"
                                            required>
                                            <small class="text-muted d-block mt-2">
@@ -257,6 +261,7 @@
                                     <input type="date"
                                            name="makeup_date"
                                            value="{{ old('makeup_date') }}"
+                                           min="{{ $todayDate }}"
                                            class="form-control rounded-3">
                                 </div>
 
@@ -544,4 +549,49 @@
         </form>
     </div>
 </section>
+@endsection
+
+@section('script')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const eventDateInput = document.querySelector('input[name="event_date"]');
+        const rentalStartInput = document.querySelector('input[name="rental_start"]');
+        const rentalEndInput = document.querySelector('input[name="rental_end"]');
+        const makeupDateInput = document.querySelector('input[name="makeup_date"]');
+
+        function syncCheckoutDates() {
+            if (rentalStartInput && eventDateInput && rentalStartInput.value) {
+                eventDateInput.min = rentalStartInput.value;
+
+                if (eventDateInput.value && eventDateInput.value < rentalStartInput.value) {
+                    eventDateInput.value = rentalStartInput.value;
+                }
+            }
+
+            if (eventDateInput && rentalEndInput && eventDateInput.value) {
+                rentalEndInput.min = eventDateInput.value;
+
+                if (rentalEndInput.value && rentalEndInput.value < eventDateInput.value) {
+                    rentalEndInput.value = eventDateInput.value;
+                }
+            }
+
+            if (eventDateInput && makeupDateInput && eventDateInput.value) {
+                makeupDateInput.max = eventDateInput.value;
+
+                if (makeupDateInput.value && makeupDateInput.value > eventDateInput.value) {
+                    makeupDateInput.value = eventDateInput.value;
+                }
+            }
+        }
+
+        [eventDateInput, rentalStartInput, rentalEndInput, makeupDateInput].forEach(function (input) {
+            if (input) {
+                input.addEventListener('change', syncCheckoutDates);
+            }
+        });
+
+        syncCheckoutDates();
+    });
+</script>
 @endsection

@@ -19,6 +19,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -306,11 +307,14 @@ class CheckoutController extends Controller
         $snapJsUrl = $midtransSnap->snapJsUrl();
         $midtransClientKey = config('midtrans.client_key');
 
+        $receiptUrl = $this->signedReceiptUrl($order);
+
         return view('customer.checkout-success', compact(
             'order',
             'payment',
             'snapJsUrl',
-            'midtransClientKey'
+            'midtransClientKey',
+            'receiptUrl'
         ));
     }
 
@@ -327,18 +331,33 @@ class CheckoutController extends Controller
             'butuh_rias' => 'required|boolean',
             'budget' => 'nullable|in:Rendah,Sedang,Tinggi',
             'payment_method' => 'required|in:tunai,qris',
-            'event_date' => 'required|date',
-            'rental_start' => 'required|date',
-            'rental_end' => 'required|date|after_or_equal:rental_start',
-            'makeup_date' => 'nullable|date',
+
+            'event_date' => 'required|date|after_or_equal:today|after_or_equal:rental_start',
+            'rental_start' => 'required|date|after_or_equal:today',
+            'rental_end' => 'required|date|after_or_equal:rental_start|after_or_equal:event_date',
+            'makeup_date' => 'nullable|date|after_or_equal:today|before_or_equal:event_date',
+
+            'agree_terms' => 'accepted',
             'notes' => 'nullable|string',
         ], [
+            'fullname.required' => 'Nama lengkap wajib diisi.',
+            'phone.required' => 'Nomor WhatsApp/HP wajib diisi.',
+            'payment_method.required' => 'Metode pembayaran wajib dipilih.',
+
             'event_date.required' => 'Tanggal acara wajib diisi.',
+            'event_date.after_or_equal' => 'Tanggal acara tidak boleh tanggal yang sudah lewat dan harus berada di dalam rentang sewa.',
+
             'rental_start.required' => 'Tanggal mulai sewa wajib diisi.',
+            'rental_start.after_or_equal' => 'Tanggal mulai sewa tidak boleh tanggal yang sudah lewat.',
+
             'rental_end.required' => 'Tanggal selesai sewa wajib diisi.',
-            'rental_end.after_or_equal' => 'Tanggal selesai sewa tidak boleh sebelum tanggal mulai sewa.',
+            'rental_end.after_or_equal' => 'Tanggal selesai sewa tidak boleh sebelum tanggal mulai sewa atau sebelum tanggal acara.',
+
+            'makeup_date.after_or_equal' => 'Tanggal rias tidak boleh tanggal yang sudah lewat.',
+            'makeup_date.before_or_equal' => 'Tanggal rias tidak boleh setelah tanggal acara.',
+
             'agree_terms.accepted' => 'Anda wajib menyetujui aturan sewa sebelum membuat pesanan.',
-            ]);
+        ]);
     }
 
     private function prepareBundleComponents(Bundle $bundle, array $selectedVariants, string $rentalStart, string $rentalEnd): array
@@ -675,14 +694,22 @@ class CheckoutController extends Controller
                 'payment_status_label' => $statusLabel,
                 'payment_status_class' => $statusClass,
                 'is_paid' => $paymentStatus === 'paid',
-                'receipt_url' => route('checkout.receipt', $order->order_code),
+                'receipt_url' => $this->signedReceiptUrl($order),
                 'checked_at' => now()->format('d-m-Y H:i:s'),
             ])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 
-    public function receipt(string $orderCode)
+    public function receipt(Request $request, string $orderCode)
     {
+        if (!$request->hasValidSignature()) {
+            return redirect()
+                ->route('order.track.index')
+                ->withErrors([
+                    'order_code' => 'Akses struk tidak valid atau sudah kedaluwarsa. Silakan cek pesanan menggunakan kode order dan nomor WhatsApp/HP.',
+                ]);
+        }
+
         $order = Order::with([
             'user',
             'orderBundles.bundle.bundleItems.item',
@@ -698,5 +725,14 @@ class CheckoutController extends Controller
         $booking = $order->rentalBookings->first();
 
         return view('customer.receipt', compact('order', 'payment', 'booking'));
+    }
+
+    private function signedReceiptUrl(Order $order): string
+    {
+        return URL::temporarySignedRoute(
+            'checkout.receipt',
+            now()->addHours(24),
+            ['orderCode' => $order->order_code]
+        );
     }
 }

@@ -33,10 +33,11 @@ class CartController extends Controller
         $validated = $request->validate([
             'quantity' => 'nullable|integer|min:1',
             'item_variant_id' => 'nullable|exists:item_variants,id',
-            'rental_start' => 'required|date',
+            'rental_start' => 'required|date|after_or_equal:today',
             'rental_end' => 'required|date|after_or_equal:rental_start',
         ], [
             'rental_start.required' => 'Tanggal mulai sewa wajib dipilih sebelum menambahkan item ke keranjang.',
+            'rental_start.after_or_equal' => 'Tanggal mulai sewa tidak boleh tanggal yang sudah lewat.',
             'rental_end.required' => 'Tanggal selesai sewa wajib dipilih sebelum menambahkan item ke keranjang.',
             'rental_end.after_or_equal' => 'Tanggal selesai sewa tidak boleh sebelum tanggal mulai sewa.',
         ]);
@@ -191,10 +192,11 @@ class CartController extends Controller
     public function updateDates(Request $request, RentalAvailabilityService $availabilityService)
     {
         $validated = $request->validate([
-            'rental_start' => 'required|date',
+            'rental_start' => 'required|date|after_or_equal:today',
             'rental_end' => 'required|date|after_or_equal:rental_start',
         ], [
             'rental_start.required' => 'Tanggal mulai sewa wajib diisi.',
+            'rental_start.after_or_equal' => 'Tanggal mulai sewa tidak boleh tanggal yang sudah lewat.',
             'rental_end.required' => 'Tanggal selesai sewa wajib diisi.',
             'rental_end.after_or_equal' => 'Tanggal selesai sewa tidak boleh sebelum tanggal mulai sewa.',
         ]);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContactSetting;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class OrderTrackingController extends Controller
 {
@@ -17,6 +18,7 @@ class OrderTrackingController extends Controller
             'payment' => null,
             'booking' => null,
             'contact' => $contact,
+            'receiptUrl' => null,
         ]);
     }
 
@@ -30,7 +32,7 @@ class OrderTrackingController extends Controller
             'phone.required' => 'Nomor WhatsApp/HP wajib diisi.',
         ]);
 
-        $orderCode = trim($validated['order_code']);
+        $orderCode = strtoupper(trim($validated['order_code']));
         $inputPhone = trim($validated['phone']);
 
         $order = Order::with([
@@ -56,11 +58,18 @@ class OrderTrackingController extends Controller
         $payment = $order->payments->first();
         $booking = $order->rentalBookings->first();
 
+        $receiptUrl = URL::temporarySignedRoute(
+            'checkout.receipt',
+            now()->addHours(24),
+            ['orderCode' => $order->order_code]
+        );
+
         return view('customer.order-status', compact(
             'order',
             'payment',
             'booking',
-            'contact'
+            'contact',
+            'receiptUrl'
         ));
     }
 
@@ -81,15 +90,6 @@ class OrderTrackingController extends Controller
             return true;
         }
 
-        /*
-         * Toleransi format nomor:
-         * 08123456789
-         * 628123456789
-         * +628123456789
-         *
-         * Sistem membandingkan 8 digit terakhir agar tetap cocok
-         * meskipun format awal nomor berbeda.
-         */
         return strlen($input) >= 8
             && strlen($stored) >= 8
             && substr($input, -8) === substr($stored, -8);

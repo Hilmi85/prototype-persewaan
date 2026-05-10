@@ -13,7 +13,7 @@ class AvailabilityController extends Controller
     {
         $validated = $request->validate([
             'item_variant_id' => 'required|exists:item_variants,id',
-            'rental_start' => 'required|date',
+            'rental_start' => 'required|date|after_or_equal:today',
             'rental_end' => 'required|date|after_or_equal:rental_start',
             'quantity' => 'nullable|integer|min:1',
         ]);

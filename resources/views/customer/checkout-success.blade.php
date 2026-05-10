@@ -520,9 +520,9 @@
                                 </a>
                             @endif
                             <a id="receipt-button"
-                               href="{{ route('checkout.receipt', $order->order_code) }}"
-                               target="_blank"
-                               class="btn btn-success rounded-pill py-3 {{ ($payment && $payment->payment_status === 'paid') ? '' : 'disabled' }}">
+                                href="{{ $receiptUrl }}"
+                                target="_blank"
+                                class="btn btn-success rounded-pill py-3 {{ ($payment && $payment->payment_status === 'paid') ? '' : 'disabled' }}">
                                 <i class="fa fa-file-invoice me-2"></i>Unduh / Cetak Struk
                             </a>
 

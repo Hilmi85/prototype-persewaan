@@ -31,6 +31,7 @@
     $rentalDates = session('rental_dates');
     $defaultRentalStart = old('rental_start', $rentalDates['rental_start'] ?? '');
     $defaultRentalEnd = old('rental_end', $rentalDates['rental_end'] ?? '');
+    $todayDate = now()->toDateString();
 @endphp
 
 <section class="container-fluid page-header customer-hero py-5 mb-5">
@@ -239,6 +240,7 @@
                                                         name="rental_start"
                                                         id="availability_rental_start"
                                                         value="{{ $defaultRentalStart }}"
+                                                        min="{{ $todayDate }}"
                                                         class="form-control rounded-3"
                                                         required>
                                                 </div>
@@ -251,6 +253,7 @@
                                                         name="rental_end"
                                                         id="availability_rental_end"
                                                         value="{{ $defaultRentalEnd }}"
+                                                        min="{{ $todayDate }}"
                                                         class="form-control rounded-3"
                                                         required>
                                                 </div>

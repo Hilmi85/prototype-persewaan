@@ -392,6 +392,50 @@
                                 </table>
                             </div>
 
+                            @if($booking)
+                                <div class="alert alert-warning rounded-4 mt-4 mb-0">
+                                    <div class="fw-bold text-dark mb-2">
+                                        <i class="fa fa-calendar-check me-2"></i>Ringkasan Jadwal Sewa
+                                    </div>
+
+                                    <div class="row g-3 small">
+                                        <div class="col-md-6">
+                                            <div class="text-muted">Tanggal Acara</div>
+                                            <div class="fw-semibold text-dark">
+                                                {{ $booking->event_date ? $booking->event_date->format('d-m-Y') : '-' }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="text-muted">Tanggal Rias</div>
+                                            <div class="fw-semibold text-dark">
+                                                {{ $booking->makeup_date ? $booking->makeup_date->format('d-m-Y') : '-' }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="text-muted">Mulai Sewa</div>
+                                            <div class="fw-semibold text-dark">
+                                                {{ $booking->rental_start ? $booking->rental_start->format('d-m-Y') : '-' }}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="text-muted">Selesai Sewa</div>
+                                            <div class="fw-semibold text-dark">
+                                                {{ $booking->rental_end ? $booking->rental_end->format('d-m-Y') : '-' }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <div class="small text-muted mb-0">
+                                        Pastikan jadwal di atas sudah sesuai. Jika ada perubahan jadwal, segera hubungi admin Quin Salon.
+                                    </div>
+                                </div>
+                            @endif
+
                             <div id="tracking-status-updated" class="small text-muted mt-3">
                                 Status terakhir dicek saat halaman dibuka.
                             </div>
@@ -529,11 +573,13 @@
                                     <i class="fa fa-rotate me-2"></i>Cek Ulang Status
                                 </button>
 
-                                <a href="{{ route('checkout.receipt', $order->order_code) }}"
-                                   target="_blank"
-                                   class="btn btn-outline-dark rounded-pill px-4">
-                                    <i class="fa fa-receipt me-2"></i>Lihat Struk
-                                </a>
+                                @if($receiptUrl)
+                                    <a href="{{ $receiptUrl }}"
+                                    target="_blank"
+                                    class="btn btn-outline-dark rounded-pill px-4">
+                                        <i class="fa fa-receipt me-2"></i>Lihat Struk
+                                    </a>
+                                @endif
 
                                 @if($adminWhatsappUrl)
                                     <a href="{{ $adminWhatsappUrl }}"

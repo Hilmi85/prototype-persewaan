@@ -9,6 +9,7 @@
     $rentalStartValue = old('rental_start', $rentalDates['rental_start'] ?? '');
     $rentalEndValue = old('rental_end', $rentalDates['rental_end'] ?? '');
     $warningMessage = $warning ?? session('warning');
+    $todayDate = now()->toDateString();
 @endphp
 
 <section class="container-fluid page-header customer-hero py-5 mb-5">
@@ -299,6 +300,7 @@
                                         <input type="date"
                                                name="rental_start"
                                                value="{{ $rentalStartValue }}"
+                                               min="{{ $todayDate }}"
                                                class="form-control rounded-3"
                                                required>
                                     </div>
@@ -310,6 +312,7 @@
                                         <input type="date"
                                                name="rental_end"
                                                value="{{ $rentalEndValue }}"
+                                               min="{{ $todayDate }}"
                                                class="form-control rounded-3"
                                                required>
                                     </div>
