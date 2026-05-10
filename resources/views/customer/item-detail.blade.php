@@ -27,6 +27,10 @@
         'aksesoris' => 'Kembali ke Katalog',
         default => 'Kembali ke Katalog Baju Adat',
     };
+
+    $rentalDates = session('rental_dates');
+    $defaultRentalStart = old('rental_start', $rentalDates['rental_start'] ?? '');
+    $defaultRentalEnd = old('rental_end', $rentalDates['rental_end'] ?? '');
 @endphp
 
 <section class="container-fluid page-header customer-hero py-5 mb-5">
@@ -211,8 +215,51 @@
                         </p>
 
                         @if($hasVariants || $canOrderWithoutVariant)
-                            <form action="{{ route('cart.add', $item->id) }}" method="POST">
-                                @csrf
+                            <form action="{{ route('cart.add', $item->id) }}" method="POST" id="addToCartForm">
+                            @csrf
+
+                                <div class="alert alert-light border rounded-4 mb-4">
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <i class="fa fa-calendar-check text-dark mt-1"></i>
+                                        <div class="w-100">
+                                            <strong class="d-block text-dark mb-1">
+                                                Tanggal Sewa Produk
+                                            </strong>
+
+                                            <span class="text-muted small d-block mb-3">
+                                                Tanggal ini akan disimpan ke keranjang dan otomatis terisi di checkout.
+                                            </span>
+
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">
+                                                        Mulai Sewa <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="date"
+                                                        name="rental_start"
+                                                        id="availability_rental_start"
+                                                        value="{{ $defaultRentalStart }}"
+                                                        class="form-control rounded-3"
+                                                        required>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">
+                                                        Selesai Sewa <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="date"
+                                                        name="rental_end"
+                                                        id="availability_rental_end"
+                                                        value="{{ $defaultRentalEnd }}"
+                                                        class="form-control rounded-3"
+                                                        required>
+                                                </div>
+                                            </div>
+
+                                            <div id="variantAvailabilityResult" class="alert rounded-4 mt-3 mb-0 d-none"></div>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 @if($hasVariants)
                                     <div class="mb-3">
@@ -248,8 +295,8 @@
                                            class="form-control">
                                 </div>
 
-                                <button type="submit" class="btn btn-dark rounded-pill w-100 py-3 mb-3">
-                                    <i class="fa fa-cart-plus me-2"></i>Tambah ke Keranjang
+                                <button type="submit" id="addToCartButton" class="btn btn-dark rounded-pill w-100 py-3 mb-3">
+                                    <i class="fa fa-cart-plus me-2"></i>Cek & Tambah ke Keranjang
                                 </button>
                             </form>
                         @else
@@ -358,14 +405,21 @@
 @section('script')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('addToCartForm');
     const variantSelect = document.getElementById('item_variant_id');
     const quantityInput = document.getElementById('quantity');
+    const startInput = document.getElementById('availability_rental_start');
+    const endInput = document.getElementById('availability_rental_end');
+    const resultBox = document.getElementById('variantAvailabilityResult');
+    const submitButton = document.getElementById('addToCartButton');
 
-    if (!variantSelect || !quantityInput) {
-        return;
-    }
+    let lastAvailabilityStatus = null;
 
     function syncMaxQuantity() {
+        if (!variantSelect || !quantityInput) {
+            return;
+        }
+
         const selectedOption = variantSelect.options[variantSelect.selectedIndex];
         const stock = selectedOption ? Number(selectedOption.dataset.stock || 1) : 1;
 
@@ -376,8 +430,151 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    variantSelect.addEventListener('change', syncMaxQuantity);
-    syncMaxQuantity();
+    function showAvailabilityMessage(type, message) {
+        if (!resultBox) {
+            return;
+        }
+
+        resultBox.className = 'alert rounded-4 mt-3 mb-0 alert-' + type;
+        resultBox.innerHTML = message;
+        resultBox.classList.remove('d-none');
+    }
+
+    function hideAvailabilityMessage() {
+        if (!resultBox) {
+            return;
+        }
+
+        resultBox.classList.add('d-none');
+        resultBox.innerHTML = '';
+    }
+
+    function setButtonDisabled(disabled) {
+        if (!submitButton) {
+            return;
+        }
+
+        submitButton.disabled = disabled;
+    }
+
+    function checkAvailability() {
+        lastAvailabilityStatus = null;
+
+        if (!startInput || !endInput || !quantityInput) {
+            setButtonDisabled(false);
+            return;
+        }
+
+        const rentalStart = startInput.value;
+        const rentalEnd = endInput.value;
+        const quantity = quantityInput.value || 1;
+
+        if (!rentalStart || !rentalEnd) {
+            hideAvailabilityMessage();
+            setButtonDisabled(false);
+            return;
+        }
+
+        if (!variantSelect) {
+            showAvailabilityMessage(
+                'success',
+                '<i class="fa fa-circle-check me-2"></i>Tanggal sewa sudah dipilih dan akan dibawa ke checkout.'
+            );
+            setButtonDisabled(false);
+            return;
+        }
+
+        const variantId = variantSelect.value;
+
+        if (!variantId) {
+            hideAvailabilityMessage();
+            setButtonDisabled(false);
+            return;
+        }
+
+        showAvailabilityMessage('light', '<i class="fa fa-spinner fa-spin me-2"></i>Mengecek ketersediaan tanggal...');
+
+        const url = new URL("{{ route('availability.variant') }}", window.location.origin);
+        url.searchParams.set('item_variant_id', variantId);
+        url.searchParams.set('rental_start', rentalStart);
+        url.searchParams.set('rental_end', rentalEnd);
+        url.searchParams.set('quantity', quantity);
+
+        fetch(url.toString(), {
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Gagal mengecek ketersediaan.');
+                }
+
+                return response.json();
+            })
+            .then(function (data) {
+                lastAvailabilityStatus = data.available ? 'available' : 'unavailable';
+
+                if (data.available) {
+                    showAvailabilityMessage(
+                        'success',
+                        '<i class="fa fa-circle-check me-2"></i>' +
+                        '<strong>Tersedia.</strong> ' +
+                        data.message +
+                        '<br><small>Tanggal ini akan tersimpan di keranjang.</small>'
+                    );
+                    setButtonDisabled(false);
+                } else {
+                    showAvailabilityMessage(
+                        'danger',
+                        '<i class="fa fa-circle-exclamation me-2"></i>' +
+                        '<strong>Tidak tersedia.</strong> ' +
+                        data.message
+                    );
+                    setButtonDisabled(true);
+                }
+            })
+            .catch(function () {
+                lastAvailabilityStatus = null;
+                showAvailabilityMessage(
+                    'warning',
+                    '<i class="fa fa-triangle-exclamation me-2"></i>Gagal mengecek ketersediaan. Sistem tetap akan mengecek ulang saat item ditambahkan.'
+                );
+                setButtonDisabled(false);
+            });
+    }
+
+    if (variantSelect && quantityInput) {
+        variantSelect.addEventListener('change', function () {
+            syncMaxQuantity();
+            checkAvailability();
+        });
+
+        quantityInput.addEventListener('input', checkAvailability);
+        syncMaxQuantity();
+    }
+
+    if (startInput) {
+        startInput.addEventListener('change', checkAvailability);
+    }
+
+    if (endInput) {
+        endInput.addEventListener('change', checkAvailability);
+    }
+
+    if (form) {
+        form.addEventListener('submit', function (event) {
+            if (variantSelect && lastAvailabilityStatus === 'unavailable') {
+                event.preventDefault();
+                showAvailabilityMessage(
+                    'danger',
+                    '<i class="fa fa-circle-exclamation me-2"></i>Varian tidak tersedia pada tanggal yang dipilih. Silakan pilih tanggal lain.'
+                );
+            }
+        });
+    }
+
+    checkAvailability();
 });
 </script>
 @endsection

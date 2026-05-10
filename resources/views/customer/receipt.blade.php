@@ -184,6 +184,9 @@
 </head>
 <body>
 @php
+    $whatsappService = app(\App\Services\WhatsappMessageService::class);
+    $adminWhatsappUrl = $whatsappService->customerAskAdminFromOrder($order);
+
     $paymentStatus = $payment->payment_status ?? 'pending';
 
     $statusLabel = match($paymentStatus) {
@@ -197,6 +200,9 @@
     $statusClass = $paymentStatus === 'paid'
         ? 'status-paid'
         : ($paymentStatus === 'pending' ? 'status-pending' : 'status-failed');
+
+    $termsSnapshot = app(\App\Services\RentalTermsService::class)->normalizeSnapshot($order->terms_snapshot);
+    $acceptedTerms = $termsSnapshot['rules'] ?? [];
 @endphp
 
 <div class="receipt-wrapper">
@@ -388,6 +394,30 @@
         </table>
     </div>
 
+    <div class="section">
+        <h3>Persetujuan Aturan Sewa</h3>
+
+        <table class="info">
+            <tr>
+                <td>Waktu Persetujuan</td>
+                <td>
+                    <strong>
+                        {{ $order->terms_accepted_at ? $order->terms_accepted_at->format('d-m-Y H:i') : $order->created_at->format('d-m-Y H:i') }}
+                    </strong>
+                </td>
+            </tr>
+        </table>
+
+        <ol style="margin-top: 12px; padding-left: 20px;">
+            @foreach($acceptedTerms as $term)
+                <li style="margin-bottom: 8px;">
+                    <strong>{{ $term['title'] }}</strong><br>
+                    <span>{{ $term['description'] }}</span>
+                </li>
+            @endforeach
+        </ol>
+    </div>
+
     <div class="footer">
         Struk ini dibuat otomatis oleh sistem Quin Salon.
         Simpan struk ini sebagai bukti transaksi.
@@ -398,6 +428,12 @@
     <button onclick="window.print()" class="btn btn-primary">
         Unduh / Cetak PDF
     </button>
+
+    @if($adminWhatsappUrl)
+        <a href="{{ $adminWhatsappUrl }}" target="_blank" class="btn btn-primary">
+            Chat Admin
+        </a>
+    @endif
 
     <a href="{{ route('checkout.success', $order->order_code) }}" class="btn btn-secondary">
         Kembali

@@ -25,6 +25,8 @@ class Order extends Model
         'payment_method',
         'note',
         'notes',
+        'terms_accepted_at',
+        'terms_snapshot',
     ];
 
     protected $casts = [
@@ -32,6 +34,8 @@ class Order extends Model
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
         'grand_total' => 'decimal:2',
+        'terms_accepted_at' => 'datetime',
+        'terms_snapshot' => 'array',
     ];
 
     public function user()

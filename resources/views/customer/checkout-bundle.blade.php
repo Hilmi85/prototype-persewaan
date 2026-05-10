@@ -5,6 +5,9 @@
 @section('content')
 @php
     $bundlePrice = $bundle->price ?? $bundle->bundle_price ?? 0;
+
+    $rentalTermsService = app(\App\Services\RentalTermsService::class);
+    $rentalTerms = $rentalTermsService->rules();
 @endphp
 
 <section class="container-fluid page-header customer-hero py-5 mb-5">
@@ -242,6 +245,9 @@
                                            value="{{ old('rental_end') }}"
                                            class="form-control rounded-3"
                                            required>
+                                           <small class="text-muted d-block mt-2">
+                                                Sistem akan mengecek ulang stok setiap item paket berdasarkan tanggal sewa saat pesanan dibuat.
+                                            </small>
                                 </div>
 
                                 <div class="col-md-6">
@@ -434,11 +440,80 @@
 
                             <div class="alert alert-warning rounded-4 mb-4">
                                 <small>
-                                    Setelah pesanan dibuat, sistem akan menyimpan order, booking, dan pembayaran paket.
+                                    Setelah pesanan dibuat, sistem akan menyimpan persetujuan aturan sewa,
+                                    lalu membuat order, booking, dan pembayaran paket.
                                 </small>
                             </div>
 
                             <div class="d-grid gap-2">
+
+                                <div class="card border-0 bg-light rounded-4 mb-4">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-start gap-2 mb-3">
+                                            <div class="text-warning">
+                                                <i class="fa fa-file-signature"></i>
+                                            </div>
+
+                                            <div>
+                                                <strong class="text-dark d-block">
+                                                    Aturan Sewa Digital
+                                                </strong>
+
+                                                <small class="text-muted">
+                                                    Baca dan setujui aturan berikut sebelum membuat pesanan paket.
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <div class="accordion accordion-flush" id="rentalTermsAccordionBundle">
+                                            @foreach($rentalTerms as $index => $term)
+                                                <div class="accordion-item bg-transparent">
+                                                    <h2 class="accordion-header" id="rentalTermBundleHeading{{ $index }}">
+                                                        <button class="accordion-button collapsed bg-transparent px-0 py-2 shadow-none"
+                                                                type="button"
+                                                                data-bs-toggle="collapse"
+                                                                data-bs-target="#rentalTermBundleCollapse{{ $index }}"
+                                                                aria-expanded="false"
+                                                                aria-controls="rentalTermBundleCollapse{{ $index }}">
+                                                            <span class="fw-semibold small">
+                                                                {{ $index + 1 }}. {{ $term['title'] }}
+                                                            </span>
+                                                        </button>
+                                                    </h2>
+
+                                                    <div id="rentalTermBundleCollapse{{ $index }}"
+                                                        class="accordion-collapse collapse"
+                                                        aria-labelledby="rentalTermBundleHeading{{ $index }}"
+                                                        data-bs-parent="#rentalTermsAccordionBundle">
+                                                        <div class="accordion-body px-0 pt-0 pb-2">
+                                                            <small class="text-muted">
+                                                                {{ $term['description'] }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        <div class="border rounded-4 bg-white p-3 mt-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input"
+                                                    type="checkbox"
+                                                    name="agree_terms"
+                                                    value="1"
+                                                    id="agreeTermsBundle"
+                                                    {{ old('agree_terms') ? 'checked' : '' }}
+                                                    required>
+
+                                                <label class="form-check-label small" for="agreeTermsBundle">
+                                                    Saya menyetujui aturan sewa, pengembalian barang, denda keterlambatan,
+                                                    dan tanggung jawab kerusakan/hilang.
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <button type="submit" class="btn btn-dark rounded-pill py-3">
                                     <i class="fa fa-check-circle me-2"></i>Buat Pesanan Paket
                                 </button>

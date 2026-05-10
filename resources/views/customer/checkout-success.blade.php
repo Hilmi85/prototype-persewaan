@@ -27,6 +27,12 @@
         && filled($payment->snap_token);
 
     $shouldCheckPaymentStatus = $payment && $payment->payment_status !== 'paid';
+
+    $whatsappService = app(\App\Services\WhatsappMessageService::class);
+    $adminWhatsappUrl = $whatsappService->customerAskAdminFromOrder($order);
+
+    $termsSnapshot = app(\App\Services\RentalTermsService::class)->normalizeSnapshot($order->terms_snapshot);
+    $acceptedTerms = $termsSnapshot['rules'] ?? [];
 @endphp
 
 <section class="container-fluid page-header customer-hero py-5 mb-5">
@@ -50,6 +56,16 @@
                     <a href="#checkout-success-content" class="btn btn-dark rounded-pill px-4 py-3">
                         <i class="fa fa-arrow-down me-2"></i>Lihat Pesanan
                     </a>
+
+                    <a href="{{ route('order.track.index') }}" class="btn btn-outline-light rounded-pill px-4 py-3">
+                        <i class="fa fa-magnifying-glass me-2"></i>Cek Status Pesanan
+                    </a>
+
+                    @if($adminWhatsappUrl)
+                        <a href="{{ $adminWhatsappUrl }}" target="_blank" class="btn btn-outline-light rounded-pill px-4 py-3">
+                            <i class="fa-brands fa-whatsapp me-2"></i>Chat Admin
+                        </a>
+                    @endif
 
                     <a href="{{ route('catalog') }}" class="btn btn-outline-light rounded-pill px-4 py-3">
                         <i class="fa fa-shirt me-2"></i>Lihat Katalog
@@ -225,6 +241,39 @@
                         Snap token belum terbentuk. Pastikan konfigurasi Midtrans di file .env sudah benar.
                     </div>
                 @endif
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4 p-lg-5">
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                            Aturan Sewa
+                        </span>
+
+                        <h4 class="fw-bold text-dark mb-2">
+                            Persetujuan Aturan Sewa Digital
+                        </h4>
+
+                        <p class="text-muted mb-4">
+                            Customer telah menyetujui aturan sewa berikut saat membuat pesanan.
+                        </p>
+
+                        <div class="alert alert-success rounded-4">
+                            <i class="fa fa-circle-check me-2"></i>
+                            Disetujui pada:
+                            <strong>
+                                {{ $order->terms_accepted_at ? $order->terms_accepted_at->format('d-m-Y H:i') : $order->created_at->format('d-m-Y H:i') }}
+                            </strong>
+                        </div>
+
+                        <ol class="text-muted mb-0">
+                            @foreach($acceptedTerms as $term)
+                                <li class="mb-2">
+                                    <strong class="text-dark">{{ $term['title'] }}</strong><br>
+                                    <span>{{ $term['description'] }}</span>
+                                </li>
+                            @endforeach
+                        </ol>
+                    </div>
+                </div>
 
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4 p-lg-5">
@@ -465,6 +514,11 @@
                         </span>
 
                         <div class="d-grid gap-2">
+                            @if($adminWhatsappUrl)
+                                <a href="{{ $adminWhatsappUrl }}" target="_blank" class="btn btn-success rounded-pill py-3">
+                                    <i class="fa-brands fa-whatsapp me-2"></i>Chat Admin
+                                </a>
+                            @endif
                             <a id="receipt-button"
                                href="{{ route('checkout.receipt', $order->order_code) }}"
                                target="_blank"

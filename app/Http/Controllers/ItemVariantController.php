@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\ItemVariant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -16,7 +17,16 @@ class ItemVariantController extends Controller
             ->latest()
             ->get();
 
-        return view('admin.item-variant.index', compact('variants'));
+        $stockSummary = [
+            'total_variants' => $variants->count(),
+            'active_variants' => $variants->where('is_active', true)->count(),
+            'total_stock' => (int) $variants->sum('stock'),
+            'available_stock' => (int) $variants->sum('available_stock'),
+            'rented_stock' => (int) $variants->sum(fn ($variant) => max(0, (int) $variant->stock - (int) $variant->available_stock)),
+            'empty_stock' => $variants->where('available_stock', '<=', 0)->count(),
+        ];
+
+        return view('admin.item-variant.index', compact('variants', 'stockSummary'));
     }
 
     public function create()
@@ -99,6 +109,82 @@ class ItemVariantController extends Controller
         return redirect()
             ->route('item-variants.index')
             ->with('success', 'Varian item berhasil diperbarui.');
+    }
+
+    public function updateStock(Request $request, ItemVariant $itemVariant)
+    {
+        $validated = $request->validate([
+            'stock_action' => 'required|in:add,reduce,set_total,set_available',
+            'quantity' => 'required|integer|min:0',
+        ], [
+            'stock_action.required' => 'Pilih aksi update stok terlebih dahulu.',
+            'quantity.required' => 'Jumlah stok wajib diisi.',
+            'quantity.integer' => 'Jumlah stok harus berupa angka bulat.',
+            'quantity.min' => 'Jumlah stok tidak boleh kurang dari 0.',
+        ]);
+
+        DB::transaction(function () use ($itemVariant, $validated) {
+            $variant = ItemVariant::query()
+                ->whereKey($itemVariant->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $action = $validated['stock_action'];
+            $quantity = (int) $validated['quantity'];
+
+            $currentTotal = (int) $variant->stock;
+            $currentAvailable = (int) $variant->available_stock;
+            $bookedStock = max(0, $currentTotal - $currentAvailable);
+
+            $newTotal = $currentTotal;
+            $newAvailable = $currentAvailable;
+
+            if ($action === 'add') {
+                $newTotal = $currentTotal + $quantity;
+                $newAvailable = $currentAvailable + $quantity;
+            }
+
+            if ($action === 'reduce') {
+                if ($quantity > $currentAvailable) {
+                    throw ValidationException::withMessages([
+                        'quantity' => 'Stok yang dikurangi tidak boleh melebihi stok tersedia. Stok tersedia saat ini: ' . $currentAvailable . '.',
+                    ]);
+                }
+
+                $newTotal = $currentTotal - $quantity;
+                $newAvailable = $currentAvailable - $quantity;
+            }
+
+            if ($action === 'set_total') {
+                if ($quantity < $bookedStock) {
+                    throw ValidationException::withMessages([
+                        'quantity' => 'Stok total tidak boleh lebih kecil dari stok yang sedang tersewa/dipesan (' . $bookedStock . ').',
+                    ]);
+                }
+
+                $newTotal = $quantity;
+                $newAvailable = $newTotal - $bookedStock;
+            }
+
+            if ($action === 'set_available') {
+                if ($quantity > $currentTotal) {
+                    throw ValidationException::withMessages([
+                        'quantity' => 'Stok tersedia tidak boleh lebih besar dari stok total. Stok total saat ini: ' . $currentTotal . '.',
+                    ]);
+                }
+
+                $newAvailable = $quantity;
+            }
+
+            $variant->update([
+                'stock' => max(0, $newTotal),
+                'available_stock' => max(0, min($newAvailable, $newTotal)),
+            ]);
+        });
+
+        return redirect()
+            ->route('item-variants.index')
+            ->with('success', 'Stok varian berhasil diperbarui.');
     }
 
     public function destroy(ItemVariant $itemVariant)

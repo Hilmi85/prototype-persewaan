@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\StockService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -193,19 +195,42 @@ class PaymentController extends Controller
 
     private function syncOrderStatus(Payment $payment): void
     {
-        if (!$payment->order) {
+        if (!$payment->order_id) {
             return;
         }
 
-        $orderStatus = match ($payment->payment_status) {
-            'paid' => 'confirmed',
-            'failed', 'expired' => 'cancelled',
-            default => $payment->order->status,
-        };
+        DB::transaction(function () use ($payment) {
+            $order = Order::with('rentalBookings')
+                ->whereKey($payment->order_id)
+                ->lockForUpdate()
+                ->first();
 
-        $payment->order->update([
-            'status' => $orderStatus,
-        ]);
+            if (!$order) {
+                return;
+            }
+
+            $newStatus = match ($payment->payment_status) {
+                'paid' => 'confirmed',
+                'failed', 'expired', 'refunded' => 'cancelled',
+                default => $order->status,
+            };
+
+            if ($order->status !== $newStatus) {
+                $order->update([
+                    'status' => $newStatus,
+                ]);
+            }
+
+            if (in_array($payment->payment_status, ['failed', 'expired', 'refunded'], true)) {
+                foreach ($order->rentalBookings as $booking) {
+                    if (!in_array($booking->booking_status, ['cancelled', 'returned'], true)) {
+                        $booking->update([
+                            'booking_status' => 'cancelled',
+                        ]);
+                    }
+                }
+            }
+        });
     }
 
     private function generatePaymentCode(): string

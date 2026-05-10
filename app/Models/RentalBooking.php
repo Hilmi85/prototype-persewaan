@@ -22,6 +22,16 @@ class RentalBooking extends Model
         'pickup_method',
         'booking_status',
         'notes',
+
+        'returned_at',
+        'returned_by',
+        'return_condition',
+        'return_stock_action',
+        'return_notes',
+        'late_days',
+        'late_fee',
+        'damage_fee',
+        'total_return_fee',
     ];
 
     protected $casts = [
@@ -30,10 +40,26 @@ class RentalBooking extends Model
         'event_date' => 'date',
         'fitting_date' => 'date',
         'makeup_date' => 'date',
+        'returned_at' => 'datetime',
+
+        'late_days' => 'integer',
+        'late_fee' => 'decimal:2',
+        'damage_fee' => 'decimal:2',
+        'total_return_fee' => 'decimal:2',
     ];
 
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function returnedBy()
+    {
+        return $this->belongsTo(User::class, 'returned_by');
+    }
+
+    public function getIsReturnedAttribute(): bool
+    {
+        return $this->booking_status === 'returned' || !is_null($this->returned_at);
     }
 }

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Services\MidtransSnapService;
+use App\Services\RentalAvailabilityService;
 use App\Models\Bundle;
 use App\Models\ContactSetting;
+use App\Services\RentalTermsService;
 use App\Models\Item;
 use App\Models\ItemVariant;
 use App\Models\Order;
@@ -63,7 +65,13 @@ class CheckoutController extends Controller
         DB::beginTransaction();
 
         try {
-            $bundleComponents = $this->prepareBundleComponents($bundle, $selectedVariants);
+            $bundleComponents = $this->prepareBundleComponents(
+                $bundle,
+                $selectedVariants,
+                $validated['rental_start'],
+                $validated['rental_end']
+            );
+
             $user = $this->findOrCreateCustomer($validated);
             $total = (int) round($bundle->price);
 
@@ -81,6 +89,8 @@ class CheckoutController extends Controller
                 'status' => 'pending',
                 'payment_method' => $validated['payment_method'],
                 'note' => $validated['notes'] ?? null,
+                'terms_accepted_at' => now(),
+                'terms_snapshot' => app(RentalTermsService::class)->snapshot(),
             ]);
 
             OrderBundle::create([
@@ -110,7 +120,6 @@ class CheckoutController extends Controller
                         'subtotal_price' => 0,
                     ]);
 
-                    $this->decreaseVariantStock($component['variant'], $component['quantity']);
                 }
             }
 
@@ -166,7 +175,15 @@ class CheckoutController extends Controller
 
         $contact = ContactSetting::where('is_active', true)->first();
 
-        return view('customer.checkout-cart', compact('cartItems', 'subtotal', 'contact'));
+        $rentalDates = session('rental_dates');
+
+        if (!$rentalDates) {
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Tanggal sewa belum dipilih. Silakan pilih tanggal sewa dari detail produk atau halaman keranjang.');
+        }
+
+        return view('customer.checkout-cart', compact('cartItems', 'subtotal', 'contact', 'rentalDates'));
     }
 
     public function storeCartCheckout(Request $request)
@@ -191,7 +208,11 @@ class CheckoutController extends Controller
         DB::beginTransaction();
 
         try {
-            $cartItems = $this->validateCartStockBeforeCheckout($cartItems);
+            $cartItems = $this->validateCartStockBeforeCheckout(
+                $cartItems,
+                $validated['rental_start'],
+                $validated['rental_end']
+            );
             $user = $this->findOrCreateCustomer($validated);
 
             $order = Order::create([
@@ -208,6 +229,8 @@ class CheckoutController extends Controller
                 'status' => 'pending',
                 'payment_method' => $validated['payment_method'],
                 'note' => $validated['notes'] ?? null,
+                'terms_accepted_at' => now(),
+                'terms_snapshot' => app(RentalTermsService::class)->snapshot(),
             ]);
 
             foreach ($cartItems as $cartItem) {
@@ -229,7 +252,6 @@ class CheckoutController extends Controller
                         'subtotal_price' => $cartItem['total_price'],
                     ]);
 
-                    $this->decreaseVariantStock($cartItem['variant'], $cartItem['quantity']);
                 }
             }
 
@@ -245,7 +267,7 @@ class CheckoutController extends Controller
                 $this->buildCartSnapItems($cartItems)
             );
 
-            session()->forget('cart');
+            session()->forget(['cart', 'rental_dates']);
 
             DB::commit();
 
@@ -315,10 +337,11 @@ class CheckoutController extends Controller
             'rental_start.required' => 'Tanggal mulai sewa wajib diisi.',
             'rental_end.required' => 'Tanggal selesai sewa wajib diisi.',
             'rental_end.after_or_equal' => 'Tanggal selesai sewa tidak boleh sebelum tanggal mulai sewa.',
-        ]);
+            'agree_terms.accepted' => 'Anda wajib menyetujui aturan sewa sebelum membuat pesanan.',
+            ]);
     }
 
-    private function prepareBundleComponents(Bundle $bundle, array $selectedVariants): array
+    private function prepareBundleComponents(Bundle $bundle, array $selectedVariants, string $rentalStart, string $rentalEnd): array
     {
         $components = [];
 
@@ -332,6 +355,7 @@ class CheckoutController extends Controller
             }
 
             $quantity = max(1, (int) $bundleItem->quantity);
+
             $availableVariants = $item->itemVariants
                 ->where('is_active', true)
                 ->where('available_stock', '>', 0);
@@ -358,11 +382,19 @@ class CheckoutController extends Controller
                     ->lockForUpdate()
                     ->find($selectedVariantId);
 
-                if (!$variant || $variant->available_stock < $quantity) {
+                if (!$variant || (int) $variant->available_stock <= 0) {
                     throw ValidationException::withMessages([
-                        'bundle_variants.' . $item->id => 'Stok varian untuk item ' . $item->name . ' tidak mencukupi.',
+                        'bundle_variants.' . $item->id => 'Varian untuk item ' . $item->name . ' tidak tersedia.',
                     ]);
                 }
+
+                app(RentalAvailabilityService::class)->ensureAvailable(
+                    $variant->loadMissing('item'),
+                    $quantity,
+                    $rentalStart,
+                    $rentalEnd,
+                    $item->name . ' (' . trim(($variant->size ?? '-') . ($variant->color ? ' / ' . $variant->color : '')) . ')'
+                );
             }
 
             $components[] = [
@@ -375,7 +407,7 @@ class CheckoutController extends Controller
         return $components;
     }
 
-    private function validateCartStockBeforeCheckout(array $cartItems): array
+    private function validateCartStockBeforeCheckout(array $cartItems, string $rentalStart, string $rentalEnd): array
     {
         $validatedCartItems = [];
 
@@ -383,16 +415,25 @@ class CheckoutController extends Controller
             $variant = null;
 
             if ($cartItem['variant']) {
-                $variant = ItemVariant::where('item_id', $cartItem['item']->id)
+                $variant = ItemVariant::with('item')
+                    ->where('item_id', $cartItem['item']->id)
                     ->where('is_active', true)
                     ->lockForUpdate()
                     ->find($cartItem['variant']->id);
 
-                if (!$variant || $variant->available_stock < $cartItem['quantity']) {
+                if (!$variant || (int) $variant->available_stock <= 0) {
                     throw ValidationException::withMessages([
-                        'cart' => 'Stok varian ' . $cartItem['item']->name . ' tidak mencukupi.',
+                        'cart' => 'Varian ' . $cartItem['item']->name . ' tidak tersedia.',
                     ]);
                 }
+
+                app(RentalAvailabilityService::class)->ensureAvailable(
+                    $variant,
+                    (int) $cartItem['quantity'],
+                    $rentalStart,
+                    $rentalEnd,
+                    $cartItem['item']->name . ' (' . trim(($variant->size ?? '-') . ($variant->color ? ' / ' . $variant->color : '')) . ')'
+                );
             }
 
             $cartItem['variant'] = $variant;
@@ -400,13 +441,6 @@ class CheckoutController extends Controller
         }
 
         return $validatedCartItems;
-    }
-
-    private function decreaseVariantStock(ItemVariant $variant, int $quantity): void
-    {
-        $variant->update([
-            'available_stock' => max(0, $variant->available_stock - $quantity),
-        ]);
     }
 
     private function createRentalBooking(Order $order, array $validated, array $defaults = []): RentalBooking

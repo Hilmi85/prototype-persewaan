@@ -88,6 +88,11 @@
                             Rekomendasi Paket
                         </a>
 
+                        <a  href="{{ route('order.track.index') }}"
+                            class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('order.track.index') || request()->routeIs('order.track.check') ? 'active' : '' }}">
+                            Cek Pesanan
+                        </a>
+
                         <a href="#footer"
                            class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill">
                             Kontak
@@ -154,6 +159,11 @@
                     <a href="{{ route('recommendation.index') }}"
                        class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('recommendation.index') || request()->routeIs('recommendation.process') ? 'active' : '' }}">
                         Rekomendasi Paket
+                    </a>
+
+                    <a href="{{ route('order.track.index') }}"
+                        class="nav-item nav-link nav-brand-link fw-semibold px-3 py-2 rounded-pill {{ request()->routeIs('order.track.index') || request()->routeIs('order.track.check') ? 'active' : '' }}">
+                        Cek Pesanan
                     </a>
 
                     <a href="#footer"

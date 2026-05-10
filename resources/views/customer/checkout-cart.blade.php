@@ -3,6 +3,16 @@
 @section('title', 'Checkout Keranjang - Quin Salon')
 
 @section('content')
+@php
+    $rentalDates = $rentalDates ?? session('rental_dates');
+    $rentalStartValue = old('rental_start', $rentalDates['rental_start'] ?? '');
+    $rentalEndValue = old('rental_end', $rentalDates['rental_end'] ?? '');
+    $eventDateValue = old('event_date', $rentalStartValue);
+
+    $rentalTermsService = app(\App\Services\RentalTermsService::class);
+    $rentalTerms = $rentalTermsService->rules();
+@endphp
+
 <section class="container-fluid page-header customer-hero py-5 mb-5">
     <div class="container py-5">
         <div class="row justify-content-center text-center">
@@ -152,6 +162,19 @@
                                 Lengkapi detail acara agar admin dapat memvalidasi jadwal sewa dan rias.
                             </p>
 
+                            @if($rentalDates)
+                                <div class="alert alert-success rounded-4 mb-4">
+                                    <i class="fa fa-calendar-check me-2"></i>
+                                    Tanggal sewa sudah otomatis diambil dari keranjang:
+                                    <strong>
+                                        {{ \Carbon\Carbon::parse($rentalDates['rental_start'])->format('d-m-Y') }}
+                                        sampai
+                                        {{ \Carbon\Carbon::parse($rentalDates['rental_end'])->format('d-m-Y') }}
+                                    </strong>.
+                                    Sistem tetap akan mengecek ulang stok saat pesanan dibuat.
+                                </div>
+                            @endif
+
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">
@@ -213,7 +236,7 @@
                                     </label>
                                     <input type="date"
                                            name="event_date"
-                                           value="{{ old('event_date') }}"
+                                           value="{{ $eventDateValue }}"
                                            class="form-control rounded-3"
                                            required>
                                 </div>
@@ -224,7 +247,7 @@
                                     </label>
                                     <input type="date"
                                            name="rental_start"
-                                           value="{{ old('rental_start') }}"
+                                           value="{{ $rentalStartValue }}"
                                            class="form-control rounded-3"
                                            required>
                                 </div>
@@ -235,9 +258,12 @@
                                     </label>
                                     <input type="date"
                                            name="rental_end"
-                                           value="{{ old('rental_end') }}"
+                                           value="{{ $rentalEndValue }}"
                                            class="form-control rounded-3"
                                            required>
+                                           <small class="text-muted d-block mt-2">
+                                                Sistem akan mengecek ulang stok berdasarkan tanggal mulai dan selesai sewa saat pesanan dibuat.
+                                            </small>
                                 </div>
 
                                 <div class="col-md-6">
@@ -349,8 +375,76 @@
 
                         <div class="alert alert-warning rounded-4 mb-4">
                             <small>
-                                Setelah pesanan dibuat, sistem akan membuat data order, booking, dan pembayaran.
+                                Setelah pesanan dibuat, sistem akan mengecek ketersediaan stok sesuai tanggal sewa,
+                                menyimpan persetujuan aturan sewa, lalu membuat data order, booking, dan pembayaran.
                             </small>
+                        </div>
+
+                        <div class="card border-0 bg-light rounded-4 mb-4">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-start gap-2 mb-3">
+                                    <div class="text-warning">
+                                        <i class="fa fa-file-signature"></i>
+                                    </div>
+
+                                    <div>
+                                        <strong class="text-dark d-block">
+                                            Aturan Sewa Digital
+                                        </strong>
+
+                                        <small class="text-muted">
+                                            Baca dan setujui aturan berikut sebelum membuat pesanan.
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="accordion accordion-flush" id="rentalTermsAccordionCart">
+                                    @foreach($rentalTerms as $index => $term)
+                                        <div class="accordion-item bg-transparent">
+                                            <h2 class="accordion-header" id="rentalTermCartHeading{{ $index }}">
+                                                <button class="accordion-button collapsed bg-transparent px-0 py-2 shadow-none"
+                                                        type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#rentalTermCartCollapse{{ $index }}"
+                                                        aria-expanded="false"
+                                                        aria-controls="rentalTermCartCollapse{{ $index }}">
+                                                    <span class="fw-semibold small">
+                                                        {{ $index + 1 }}. {{ $term['title'] }}
+                                                    </span>
+                                                </button>
+                                            </h2>
+
+                                            <div id="rentalTermCartCollapse{{ $index }}"
+                                                class="accordion-collapse collapse"
+                                                aria-labelledby="rentalTermCartHeading{{ $index }}"
+                                                data-bs-parent="#rentalTermsAccordionCart">
+                                                <div class="accordion-body px-0 pt-0 pb-2">
+                                                    <small class="text-muted">
+                                                        {{ $term['description'] }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="border rounded-4 bg-white p-3 mt-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                            type="checkbox"
+                                            name="agree_terms"
+                                            value="1"
+                                            id="agreeTermsCart"
+                                            {{ old('agree_terms') ? 'checked' : '' }}
+                                            required>
+
+                                        <label class="form-check-label small" for="agreeTermsCart">
+                                            Saya menyetujui aturan sewa, pengembalian barang, denda keterlambatan,
+                                            dan tanggung jawab kerusakan/hilang.
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-dark rounded-pill w-100 py-3">

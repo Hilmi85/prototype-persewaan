@@ -7,8 +7,10 @@
         'pending' => 'Pending',
         'scheduled' => 'Scheduled',
         'rescheduled' => 'Rescheduled',
+        'picked_up' => 'Barang Diambil',
         'done' => 'Done',
         'cancelled' => 'Cancelled',
+        'returned' => 'Returned',
     ];
 
     $selectedOrderId = old('order_id', $rentalBooking->order_id);

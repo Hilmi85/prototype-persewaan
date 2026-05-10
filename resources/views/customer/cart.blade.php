@@ -5,6 +5,10 @@
 @section('content')
 @php
     $cartCollection = collect($cartItems ?? []);
+    $rentalDates = $rentalDates ?? session('rental_dates');
+    $rentalStartValue = old('rental_start', $rentalDates['rental_start'] ?? '');
+    $rentalEndValue = old('rental_end', $rentalDates['rental_end'] ?? '');
+    $warningMessage = $warning ?? session('warning');
 @endphp
 
 <section class="container-fluid page-header customer-hero py-5 mb-5">
@@ -20,7 +24,7 @@
                 </h1>
 
                 <p class="text-white mx-auto mb-4 max-w-760">
-                    Cek kembali item, varian, jumlah, dan total pesanan sebelum melanjutkan ke checkout.
+                    Cek kembali item, varian, jumlah, tanggal sewa, dan total pesanan sebelum melanjutkan ke checkout.
                 </p>
 
                 <div class="d-flex justify-content-center flex-wrap gap-2">
@@ -53,9 +57,21 @@
             </div>
         @endif
 
-        @if(!empty($warning))
+        @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4">
+                <strong>Data belum valid.</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(!empty($warningMessage))
             <div class="alert alert-warning alert-dismissible fade show rounded-3 shadow-sm mb-4">
-                <i class="fa fa-triangle-exclamation me-2"></i>{{ $warning }}
+                <i class="fa fa-triangle-exclamation me-2"></i>{{ $warningMessage }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
@@ -142,7 +158,11 @@
                                                         </div>
 
                                                         <small class="text-muted">
-                                                            Stok tersedia: {{ $cartItem['variant']->available_stock }}
+                                                            @if(!is_null($cartItem['date_available_stock'] ?? null))
+                                                                Tersedia pada tanggal sewa: {{ $cartItem['date_available_stock'] }}
+                                                            @else
+                                                                Stok siap sewa: {{ $cartItem['variant']->available_stock }}
+                                                            @endif
                                                         </small>
                                                     @else
                                                         <span class="badge bg-light text-dark border rounded-pill">
@@ -238,69 +258,133 @@
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-4 mb-4">
-                        <div class="card-body p-4">
-                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
-                                Ringkasan Belanja
-                            </span>
-
-                            <h4 class="fw-bold text-dark mb-4">
-                                Total Keranjang
-                            </h4>
-
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="text-muted">Jumlah Item</span>
-                                <strong class="text-dark">
-                                    {{ $cartCollection->sum('quantity') }}
-                                </strong>
-                            </div>
-
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="text-muted">Subtotal</span>
-                                <strong class="text-dark">
-                                    Rp{{ number_format($subtotal, 0, ',', '.') }}
-                                </strong>
-                            </div>
-
-                            <hr>
-
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <span class="fw-semibold text-dark">Total</span>
-                                <span class="fw-bold fs-4 text-dark">
-                                    Rp{{ number_format($subtotal, 0, ',', '.') }}
+                    <div class="position-sticky" style="top: 90px;">
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-body p-4">
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                    Tanggal Sewa
                                 </span>
-                            </div>
 
-                            <div class="alert alert-warning rounded-4 mb-4">
-                                <small>
-                                    Data customer, tanggal sewa, booking, dan pembayaran akan diisi pada halaman checkout.
-                                </small>
-                            </div>
+                                <h4 class="fw-bold text-dark mb-3">
+                                    Jadwal Keranjang
+                                </h4>
 
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('checkout.cart.show') }}" class="btn btn-dark rounded-pill py-3">
-                                    <i class="fa fa-credit-card me-2"></i>Lanjut Checkout
-                                </a>
+                                @if($rentalDates)
+                                    <div class="alert alert-success rounded-4 mb-4">
+                                        <small class="d-block text-muted mb-1">
+                                            Tanggal sewa yang akan dibawa ke checkout:
+                                        </small>
 
-                                <a href="{{ route('catalog') }}" class="btn btn-outline-dark rounded-pill py-3">
-                                    <i class="fa fa-shirt me-2"></i>Tambah Item Lagi
-                                </a>
+                                        <strong>
+                                            {{ \Carbon\Carbon::parse($rentalDates['rental_start'])->format('d-m-Y') }}
+                                            sampai
+                                            {{ \Carbon\Carbon::parse($rentalDates['rental_end'])->format('d-m-Y') }}
+                                        </strong>
+                                    </div>
+                                @else
+                                    <div class="alert alert-warning rounded-4 mb-4">
+                                        <small>
+                                            Tanggal sewa belum dipilih. Isi tanggal di bawah agar stok bisa dicek sebelum checkout.
+                                        </small>
+                                    </div>
+                                @endif
+
+                                <form action="{{ route('cart.updateDates') }}" method="POST">
+                                    @csrf
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">
+                                            Mulai Sewa <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date"
+                                               name="rental_start"
+                                               value="{{ $rentalStartValue }}"
+                                               class="form-control rounded-3"
+                                               required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">
+                                            Selesai Sewa <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date"
+                                               name="rental_end"
+                                               value="{{ $rentalEndValue }}"
+                                               class="form-control rounded-3"
+                                               required>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-outline-dark rounded-pill w-100">
+                                        <i class="fa fa-calendar-check me-2"></i>Update Tanggal Sewa
+                                    </button>
+                                </form>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-body p-4">
-                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
-                                Info Checkout
-                            </span>
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-body p-4">
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                    Ringkasan Pesanan
+                                </span>
 
-                            <ol class="text-muted mb-0">
-                                <li>Periksa item dan varian.</li>
-                                <li>Ubah jumlah jika diperlukan.</li>
-                                <li>Sistem menyimpan Qty otomatis.</li>
-                                <li>Lanjut checkout dan pilih pembayaran.</li>
-                            </ol>
+                                <h4 class="fw-bold text-dark mb-4">
+                                    Total Keranjang
+                                </h4>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-muted">Jumlah Item</span>
+                                    <strong class="text-dark">
+                                        {{ $cartCollection->count() }} item
+                                    </strong>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-muted">Subtotal</span>
+                                    <strong class="text-dark">
+                                        Rp{{ number_format($subtotal ?? 0, 0, ',', '.') }}
+                                    </strong>
+                                </div>
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <span class="fw-bold text-dark">Total</span>
+                                    <strong class="fs-5 text-dark">
+                                        Rp{{ number_format($subtotal ?? 0, 0, ',', '.') }}
+                                    </strong>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    @if($rentalDates)
+                                        <a href="{{ route('checkout.cart.show') }}" class="btn btn-dark rounded-pill py-3">
+                                            <i class="fa fa-credit-card me-2"></i>Lanjut Checkout
+                                        </a>
+                                    @else
+                                        <button type="button" class="btn btn-secondary rounded-pill py-3" disabled>
+                                            <i class="fa fa-calendar me-2"></i>Pilih Tanggal Dulu
+                                        </button>
+                                    @endif
+                                </div>
+
+                                <small class="text-muted d-block mt-3">
+                                    Sistem akan mengecek ulang stok sesuai tanggal sewa saat checkout dibuat.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">
+                                    Info Checkout
+                                </span>
+
+                                <ol class="text-muted mb-0 ps-3">
+                                    <li>Periksa item dan varian.</li>
+                                    <li>Pastikan tanggal sewa sudah benar.</li>
+                                    <li>Ubah jumlah jika diperlukan.</li>
+                                    <li>Lanjut checkout dan pilih pembayaran.</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                 </div>

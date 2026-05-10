@@ -39,6 +39,9 @@
                     <p class="mb-2"><a href="{{ route('catalog') }}" class="text-decoration-none footer-link">Katalog</a></p>
                     <p class="mb-2"><a href="{{ route('rias.index') }}" class="text-decoration-none footer-link">Jasa Rias</a></p>
                     <p class="mb-0"><a href="{{ route('recommendation.index') }}" class="text-decoration-none footer-link">Rekomendasi Paket</a></p>
+                    <a href="{{ route('order.track.index') }}" class="btn btn-outline-dark rounded-pill px-4">
+                        <i class="fa fa-magnifying-glass me-2"></i>Cek Status Pesanan
+                    </a>
                 </div>
             </div>
 
